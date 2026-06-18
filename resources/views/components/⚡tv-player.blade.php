@@ -231,48 +231,26 @@ new class extends Component {
             <p class="mt-3 text-[11px] font-semibold text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
         </section>
 
-        <section class="overflow-hidden rounded-[2rem] border border-slate-800/80 bg-slate-950 p-2 shadow-2xl shadow-slate-950/30 ring-1 ring-white/10">
-            <div class="rounded-[1.5rem] bg-[linear-gradient(135deg,#111827_0%,#020617_52%,#0f172a_100%)] p-3 text-white">
-                <div class="mb-3 flex items-center justify-between gap-3 px-1">
-                    <div class="min-w-0">
-                        <p class="text-[10px] font-black uppercase tracking-[0.35em] text-cyan-300">Premium Player</p>
-                        <h2 class="truncate text-base font-black sm:text-lg">{{ $this->selectedChannel()['name'] }}</h2>
-                    </div>
-                    <div class="flex shrink-0 items-center gap-2 text-[10px] font-black uppercase">
-                        <span class="rounded-full bg-red-500 px-2.5 py-1 text-white shadow-lg shadow-red-500/30">● Live</span>
-                        <span class="rounded-full bg-white/10 px-2.5 py-1 text-slate-200">{{ $this->selectedChannel()['protocol'] }}</span>
-                    </div>
+        <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700">
+            <div class="flex items-center justify-between px-4 py-3">
+                <div>
+                    <h2 class="text-sm font-extrabold">{{ $this->selectedChannel()['name'] }}</h2>
+                    <p class="text-xs font-semibold text-emerald-500">● LIVE PLAYER · {{ $this->selectedChannel()['protocol'] }}</p>
                 </div>
-
-                <div wire:ignore class="group relative aspect-video overflow-hidden rounded-[1.35rem] border border-white/10 bg-black shadow-inner shadow-black">
-                    <video id="live-tv-player" class="size-full object-cover" controls autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
-                    <div class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/75 to-transparent p-4">
-                        <div class="rounded-full bg-black/55 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur">Live TV</div>
-                        <div id="player-status" class="rounded-full bg-emerald-400/95 px-3 py-1 text-[11px] font-black text-emerald-950 shadow-lg shadow-emerald-500/30">Shaka Player ready</div>
-                    </div>
-                    <div class="pointer-events-none absolute inset-0 grid place-items-center opacity-90 transition group-hover:opacity-100">
-                        <div class="grid size-16 place-items-center rounded-full bg-white/20 text-3xl text-white shadow-2xl ring-1 ring-white/40 backdrop-blur-md sm:size-20">▶</div>
-                    </div>
-                    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent p-4 pt-16">
-                        <div class="flex items-end justify-between gap-4">
-                            <div class="min-w-0">
-                                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-slate-300">Now Playing</p>
-                                <p class="truncate text-sm font-extrabold text-white">{{ $this->selectedChannel()['name'] }}</p>
-                            </div>
-                            <div class="hidden items-center gap-2 text-[10px] font-black uppercase text-white sm:flex">
-                                <span class="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">HD</span>
-                                <span class="rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">Muted autoplay</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex gap-2 text-xs font-bold">
+                    <button class="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">Full</button>
+                    <button class="rounded-full bg-rose-50 px-3 py-1 text-rose-500 dark:bg-rose-950/40">Stop</button>
                 </div>
-
-                <div class="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
-                    <div class="rounded-2xl bg-white/10 p-3"><strong class="block text-cyan-300">{{ count($channels) }}</strong><span class="text-slate-300">Total</span></div>
-                    <div class="rounded-2xl bg-white/10 p-3"><strong class="block text-emerald-300">{{ count($channels) }}</strong><span class="text-slate-300">Live</span></div>
-                    <div class="rounded-2xl bg-white/10 p-3"><strong class="block text-orange-300">0</strong><span class="text-slate-300">Down</span></div>
-                    <div class="rounded-2xl bg-white/10 p-3"><strong class="block text-rose-300">0</strong><span class="text-slate-300">Errors</span></div>
-                </div>
+            </div>
+            <div wire:ignore class="relative aspect-video bg-slate-950">
+                <video id="live-tv-player" class="size-full" controls autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
+                <div id="player-status" class="pointer-events-none absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">Shaka Player ready</div>
+            </div>
+            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700">
+                <div class="p-3"><strong class="block text-violet-600">{{ count($channels) }}</strong><span class="text-slate-400">Total</span></div>
+                <div class="p-3"><strong class="block text-emerald-500">{{ count($channels) }}</strong><span class="text-slate-400">Live</span></div>
+                <div class="p-3"><strong class="block text-orange-500">0</strong><span class="text-slate-400">Down</span></div>
+                <div class="p-3"><strong class="block text-rose-500">0</strong><span class="text-slate-400">Errors</span></div>
             </div>
         </section>
 
