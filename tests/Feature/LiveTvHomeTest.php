@@ -30,5 +30,5 @@ test('home page renders the live tv interface with public source groups', functi
         ->assertSee('2 channels loaded from TechEasyLife 👑')
         ->assertSee('Shaka Player ready')
         ->assertSee('Monirujjaman Monjil')
-        ->assertSee('shaka-player', false);
+        ->assertSee('hls.js', false);
 });

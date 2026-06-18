@@ -294,7 +294,10 @@ new class extends Component {
     <script>
         const video = document.getElementById('live-tv-player');
         const status = document.getElementById('player-status');
-        let player;
+        let shakaPlayer;
+        let hlsPlayer;
+        let hlsLoader;
+        let shakaLoader;
 
         function updateStatus(message) {
             if (status) {
@@ -302,41 +305,158 @@ new class extends Component {
             }
         }
 
-        async function loadStream(url, name = 'Live stream') {
-            if (!window.shaka || !video || !url) {
+        function isHlsStream(url) {
+            return /\.m3u8?(\?|#|$)/i.test(url) || /m3u8/i.test(url);
+        }
+
+        function isDashStream(url) {
+            return /\.mpd(\?|#|$)/i.test(url);
+        }
+
+        function loadScript(src, globalName) {
+            if (window[globalName]) {
+                return Promise.resolve();
+            }
+
+            const existingScript = document.querySelector(`script[src="${src}"]`);
+
+            if (existingScript) {
+                return new Promise((resolve, reject) => {
+                    existingScript.addEventListener('load', () => resolve(), { once: true });
+                    existingScript.addEventListener('error', () => reject(new Error(`Unable to load ${src}`)), { once: true });
+                });
+            }
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error(`Unable to load ${src}`));
+                document.head.appendChild(script);
+            });
+        }
+
+        function resetPlayers() {
+            if (hlsPlayer) {
+                hlsPlayer.destroy();
+                hlsPlayer = null;
+            }
+
+            if (shakaPlayer) {
+                shakaPlayer.unload().catch(() => {});
+            }
+
+            if (video) {
+                video.removeAttribute('src');
+                video.load();
+            }
+        }
+
+        async function playNative(url, name) {
+            resetPlayers();
+            video.src = url;
+            updateStatus(`Loading ${name} with native player`);
+            await video.play().catch(() => updateStatus('Tap play to start'));
+        }
+
+        async function playWithHlsJs(url, name) {
+            hlsLoader ??= loadScript('https://cdn.jsdelivr.net/npm/hls.js@1.6.14/dist/hls.min.js', 'Hls');
+            await hlsLoader;
+
+            if (!window.Hls || !Hls.isSupported()) {
+                await playNative(url, name);
+
                 return;
             }
 
-            if (!player) {
-                shaka.polyfill.installAll();
-                player = new shaka.Player(video);
-                player.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
+            resetPlayers();
+            hlsPlayer = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+            });
+
+            hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+                if (!data.fatal) {
+                    return;
+                }
+
+                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                    updateStatus(`Network error on ${name}; retrying`);
+                    hlsPlayer.startLoad();
+
+                    return;
+                }
+
+                if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                    updateStatus(`Media error on ${name}; recovering`);
+                    hlsPlayer.recoverMediaError();
+
+                    return;
+                }
+
+                updateStatus(`Unable to load ${name} in browser`);
+                hlsPlayer.destroy();
+                hlsPlayer = null;
+                playNative(url, name).catch(() => updateStatus(`Unable to load stream: ${data.details ?? 'unknown'}`));
+            });
+
+            hlsPlayer.on(Hls.Events.MANIFEST_PARSED, async () => {
+                updateStatus(`Playing ${name}`);
+                await video.play().catch(() => updateStatus('Tap play to start'));
+            });
+
+            updateStatus(`Loading ${name} with HLS.js`);
+            hlsPlayer.loadSource(url);
+            hlsPlayer.attachMedia(video);
+        }
+
+        async function playWithShaka(url, name) {
+            shakaLoader ??= loadScript('https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js', 'shaka');
+            await shakaLoader;
+
+            resetPlayers();
+            shaka.polyfill.installAll();
+            shakaPlayer = new shaka.Player(video);
+            shakaPlayer.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
+
+            updateStatus(`Loading ${name} with Shaka Player`);
+            await shakaPlayer.load(url);
+            updateStatus(`Playing ${name}`);
+            await video.play().catch(() => updateStatus('Tap play to start'));
+        }
+
+        async function loadStream(url, name = 'Live stream') {
+            if (!video || !url) {
+                return;
             }
 
             try {
-                updateStatus(`Loading ${name}`);
-                await player.load(url);
-                updateStatus(`Playing ${name}`);
-                await video.play().catch(() => updateStatus('Tap play to start'));
+                if (isHlsStream(url)) {
+                    await playWithHlsJs(url, name);
+
+                    return;
+                }
+
+                if (isDashStream(url)) {
+                    await playWithShaka(url, name);
+
+                    return;
+                }
+
+                await playNative(url, name);
             } catch (error) {
-                updateStatus(`Unable to load stream: ${error.code ?? 'unknown'}`);
+                if (isHlsStream(url)) {
+                    updateStatus(`HLS.js failed; trying native playback for ${name}`);
+                    await playNative(url, name).catch(() => updateStatus(`Unable to load stream: ${error.code ?? error.message ?? 'unknown'}`));
+
+                    return;
+                }
+
+                updateStatus(`Unable to load stream: ${error.code ?? error.message ?? 'unknown'}`);
             }
         }
 
-        const bootstrapShaka = () => {
-            if (window.shaka) {
-                loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
-            }
-        };
-
-        if (!window.shaka) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js';
-            script.onload = bootstrapShaka;
-            document.head.appendChild(script);
-        } else {
-            bootstrapShaka();
-        }
+        loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
 
         $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
     </script>
