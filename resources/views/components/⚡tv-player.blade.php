@@ -181,6 +181,31 @@ new class extends Component {
 };
 ?>
 <div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#d8dcff_0,#f9f7ff_28%,#f2ecff_48%,#eafbf8_100%)] text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+
+    <style>
+        /* Custom Volume Slider CSS */
+        input[type=range].custom-vol {
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.4);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range].custom-vol::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+        input[type=range].custom-vol::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+    </style>
+
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 py-6 sm:py-8">
         <header class="text-center">
             <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100">
@@ -232,20 +257,91 @@ new class extends Component {
         </section>
 
         <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div>
-                    <h2 class="text-sm font-extrabold">{{ $this->selectedChannel()['name'] }}</h2>
-                    <p class="text-xs font-semibold text-emerald-500">● LIVE PLAYER · {{ $this->selectedChannel()['protocol'] }}</p>
+
+            <!-- NEW TOP BAR DESIGN -->
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50 dark:border-slate-800">
+                <!-- Left Side: Logo & Info -->
+                <div class="flex items-center gap-3">
+                    <div class="grid size-11 shrink-0 place-items-center rounded-[10px] border border-slate-200 bg-white text-xs font-black text-indigo-600 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                        {{ $this->selectedChannel()['logo'] }}
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <h2 class="text-[15px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight">
+                            {{ $this->selectedChannel()['name'] }} <span class="font-semibold text-slate-500">· {{ $this->selectedChannel()['category'] }}</span>
+                        </h2>
+                        <div class="mt-1 flex items-center gap-2">
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                <svg class="size-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg>
+                                LIVE PLAYER
+                            </div>
+                            <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/60 px-2 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200/60 dark:bg-emerald-900/30 dark:ring-emerald-800">
+                                <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                LIVE
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-2 text-xs font-bold">
-                    <button class="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">Full</button>
-                    <button class="rounded-full bg-rose-50 px-3 py-1 text-rose-500 dark:bg-rose-950/40">Stop</button>
+
+                <!-- Right Side: Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="top-fullscreen-btn" class="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                        Full
+                    </button>
+                    <button id="top-stop-btn" class="flex items-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition hover:bg-rose-50 dark:border-rose-900/40 dark:bg-slate-800 dark:hover:bg-rose-900/60">
+                        <span class="size-2 rounded-sm bg-rose-500"></span>
+                        Stop
+                    </button>
                 </div>
             </div>
-            <div wire:ignore class="relative aspect-video bg-slate-950">
-                <video id="live-tv-player" class="size-full" controls autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
-                <div id="player-status" class="pointer-events-none absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">Shaka Player ready</div>
+            <!-- END NEW TOP BAR DESIGN -->
+
+            <!-- Custom Player Wrapper -->
+            <div wire:ignore id="video-container" class="group relative aspect-video bg-black overflow-hidden">
+                <video id="live-tv-player" class="size-full" autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
+
+                <!-- Center Status Message -->
+                <div id="player-status" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur">Shaka Player ready</div>
+
+                <!-- Bottom Custom Controls (Hidden by default, visible on hover) -->
+                <div class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+
+                    <!-- Left Side Controls -->
+                    <div class="flex items-center gap-4">
+                        <!-- Play / Pause -->
+                        <button id="play-pause-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95">
+                            <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> <!-- Default to Pause icon since it's autoplay -->
+                        </button>
+
+                        <!-- Volume Control -->
+                        <div class="group/vol flex items-center gap-2">
+                            <button id="mute-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95">
+                                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg> <!-- Default muted -->
+                            </button>
+                            <input type="range" id="volume-slider" class="custom-vol w-0 cursor-pointer opacity-0 transition-all duration-300 group-hover/vol:w-20 group-hover/vol:opacity-100" min="0" max="1" step="0.05" value="0">
+                        </div>
+
+                        <!-- LIVE Indicator -->
+                        <div class="flex items-center gap-2 font-bold text-white ml-2">
+                            <span class="size-2.5 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"></span>
+                            <span class="text-sm font-extrabold tracking-wider">LIVE</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Controls -->
+                    <div class="flex items-center gap-3">
+                        <!-- Picture in Picture -->
+                        <button id="pip-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95" title="Picture-in-Picture">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4.5" width="20" height="15" rx="2"></rect><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none"></rect></svg>
+                        </button>
+                        <!-- Fullscreen -->
+                        <button id="fullscreen-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95" title="Fullscreen">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
+
             <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700">
                 <div class="p-3"><strong class="block text-violet-600">{{ count($channels) }}</strong><span class="text-slate-400">Total</span></div>
                 <div class="p-3"><strong class="block text-emerald-500">{{ count($channels) }}</strong><span class="text-slate-400">Live</span></div>
@@ -293,17 +389,108 @@ new class extends Component {
     @script
     <script>
         const video = document.getElementById('live-tv-player');
+        const videoContainer = document.getElementById('video-container');
         const status = document.getElementById('player-status');
+
+        // Custom Control Elements
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        const pipBtn = document.getElementById('pip-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const topFullscreenBtn = document.getElementById('top-fullscreen-btn');
+        const topStopBtn = document.getElementById('top-stop-btn');
+
+        // SVG Icons
+        const playIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+        const pauseIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+        const volHighIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+        const volMuteIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
+
         let shakaPlayer;
         let hlsPlayer;
         let hlsLoader;
         let shakaLoader;
 
+        // --- Custom UI Logic ---
+
+        // Hide Status message shortly after playing
+        let statusTimeout;
         function updateStatus(message) {
             if (status) {
                 status.textContent = message;
+                status.style.opacity = '1';
+                clearTimeout(statusTimeout);
+                statusTimeout = setTimeout(() => {
+                    status.style.opacity = '0';
+                }, 3000);
             }
         }
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            if (video.paused) video.play();
+            else video.pause();
+        });
+        video.addEventListener('play', () => playPauseBtn.innerHTML = pauseIcon);
+        video.addEventListener('pause', () => playPauseBtn.innerHTML = playIcon);
+
+        // Stop Button (Top right)
+        topStopBtn.addEventListener('click', () => {
+            video.pause();
+            updateStatus('Stopped');
+        });
+
+        // Volume control
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            if(!video.muted && video.volume === 0) video.volume = 0.5;
+            volumeSlider.value = video.muted ? 0 : video.volume;
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            video.volume = e.target.value;
+            video.muted = e.target.value === '0';
+        });
+
+        video.addEventListener('volumechange', () => {
+            if (video.muted || video.volume === 0) {
+                muteBtn.innerHTML = volMuteIcon;
+                volumeSlider.value = 0;
+            } else {
+                muteBtn.innerHTML = volHighIcon;
+                volumeSlider.value = video.volume;
+            }
+        });
+
+        // Picture in Picture
+        if (!document.pictureInPictureEnabled) pipBtn.style.display = 'none';
+        pipBtn.addEventListener('click', async () => {
+            try {
+                if (document.pictureInPictureElement) await document.exitPictureInPicture();
+                else await video.requestPictureInPicture();
+            } catch (err) { console.error(err); }
+        });
+
+        // Fullscreen Logic
+        const toggleFullscreen = async () => {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+            } else {
+                await videoContainer.requestFullscreen();
+            }
+        };
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        topFullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // Click on video to toggle play/pause
+        video.addEventListener('click', () => {
+            if (video.paused) video.play();
+            else video.pause();
+        });
+
+
+        // --- Player Core Logic ---
 
         function isHlsStream(url) {
             return /\.m3u8?(\?|#|$)/i.test(url) || /m3u8/i.test(url);
@@ -355,7 +542,7 @@ new class extends Component {
         async function playNative(url, name) {
             resetPlayers();
             video.src = url;
-            updateStatus(`Loading ${name} with native player`);
+            updateStatus(`Loading ${name}...`);
             await video.play().catch(() => updateStatus('Tap play to start'));
         }
 
@@ -365,7 +552,6 @@ new class extends Component {
 
             if (!window.Hls || !Hls.isSupported()) {
                 await playNative(url, name);
-
                 return;
             }
 
@@ -376,36 +562,32 @@ new class extends Component {
             });
 
             hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-                if (!data.fatal) {
-                    return;
-                }
+                if (!data.fatal) return;
 
                 if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                    updateStatus(`Network error on ${name}; retrying`);
+                    updateStatus(`Network error; retrying...`);
                     hlsPlayer.startLoad();
-
                     return;
                 }
 
                 if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                    updateStatus(`Media error on ${name}; recovering`);
+                    updateStatus(`Media error; recovering...`);
                     hlsPlayer.recoverMediaError();
-
                     return;
                 }
 
-                updateStatus(`Unable to load ${name} in browser`);
+                updateStatus(`Unable to load in browser`);
                 hlsPlayer.destroy();
                 hlsPlayer = null;
-                playNative(url, name).catch(() => updateStatus(`Unable to load stream: ${data.details ?? 'unknown'}`));
+                playNative(url, name).catch(() => updateStatus(`Error: ${data.details ?? 'unknown'}`));
             });
 
             hlsPlayer.on(Hls.Events.MANIFEST_PARSED, async () => {
-                updateStatus(`Playing ${name}`);
+                updateStatus(`Playing: ${name}`);
                 await video.play().catch(() => updateStatus('Tap play to start'));
             });
 
-            updateStatus(`Loading ${name}`);
+            updateStatus(`Loading ${name}...`);
             hlsPlayer.loadSource(url);
             hlsPlayer.attachMedia(video);
         }
@@ -419,40 +601,37 @@ new class extends Component {
             shakaPlayer = new shaka.Player(video);
             shakaPlayer.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
 
-            updateStatus(`Loading ${name} with Shaka Player`);
+            updateStatus(`Loading ${name}...`);
             await shakaPlayer.load(url);
-            updateStatus(`Playing ${name}`);
+            updateStatus(`Playing: ${name}`);
             await video.play().catch(() => updateStatus('Tap play to start'));
         }
 
         async function loadStream(url, name = 'Live stream') {
-            if (!video || !url) {
-                return;
-            }
+            if (!video || !url) return;
+
+            // Set slider to sync with native muted state
+            volumeSlider.value = video.muted ? 0 : video.volume;
 
             try {
                 if (isHlsStream(url)) {
                     await playWithHlsJs(url, name);
-
                     return;
                 }
 
                 if (isDashStream(url)) {
                     await playWithShaka(url, name);
-
                     return;
                 }
 
                 await playNative(url, name);
             } catch (error) {
                 if (isHlsStream(url)) {
-                    updateStatus(`HLS.js failed; trying native playback for ${name}`);
-                    await playNative(url, name).catch(() => updateStatus(`Unable to load stream: ${error.code ?? error.message ?? 'unknown'}`));
-
+                    updateStatus(`Native playback fallback...`);
+                    await playNative(url, name).catch(() => updateStatus(`Error: ${error.code ?? error.message ?? 'unknown'}`));
                     return;
                 }
-
-                updateStatus(`Unable to load stream: ${error.code ?? error.message ?? 'unknown'}`);
+                updateStatus(`Error: ${error.code ?? error.message ?? 'unknown'}`);
             }
         }
 
