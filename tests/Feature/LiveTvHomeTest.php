@@ -28,7 +28,9 @@ test('home page renders the live tv interface with public source groups', functi
         ->assertSee('Jamuna TV')
         ->assertSee('T Sports')
         ->assertSee('2 channels loaded from TechEasyLife 👑')
-        ->assertSee('Video.js ready')
+        ->assertSee('Premium Player')
+        ->assertSee('Shaka Player ready')
+        ->assertSee('Now Playing')
         ->assertSee('Monirujjaman Monjil')
-        ->assertSee('video.min.js', false);
+        ->assertSee('hls.min.js', false);
 });
