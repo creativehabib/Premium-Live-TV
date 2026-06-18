@@ -405,7 +405,7 @@ new class extends Component {
                 await video.play().catch(() => updateStatus('Tap play to start'));
             });
 
-            updateStatus(`Loading ${name} with HLS.js`);
+            updateStatus(`Loading ${name}`);
             hlsPlayer.loadSource(url);
             hlsPlayer.attachMedia(video);
         }
