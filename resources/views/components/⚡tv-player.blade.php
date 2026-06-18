@@ -17,18 +17,19 @@ new class extends Component {
      * @var list<array{id:int,name:string,category:string,url:string,logo:string,status:string,protocol:string,response:string,viewers:int}>
      */
     public array $channels = [
-        ['id' => 1, 'name' => 'Star News', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'SN', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 1240],
-        ['id' => 2, 'name' => 'DBC News HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'DN', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 980],
-        ['id' => 3, 'name' => 'Maasranga TV', 'category' => 'Entertainment', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/sintel-widevine/dash.mpd', 'logo' => 'MT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 732],
-        ['id' => 4, 'name' => 'Ekattor HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => '71', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 654],
-        ['id' => 5, 'name' => 'Channel 24 HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => '24', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 610],
-        ['id' => 6, 'name' => 'ATN News', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'AT', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 588],
-        ['id' => 7, 'name' => 'Jamuna TV', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'JT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 550],
-        ['id' => 8, 'name' => 'Deepto TV HD', 'category' => 'Entertainment', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/sintel-widevine/dash.mpd', 'logo' => 'DT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 436],
+        ['id' => 1, 'name' => 'Star News', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1710/output/index.m3u8', 'logo' => 'SN', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 1240],
+        ['id' => 2, 'name' => 'DBC News HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8', 'logo' => 'DN', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 980],
+        ['id' => 3, 'name' => 'Maasranga TV', 'category' => 'Entertainment', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8', 'logo' => 'MT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 732],
+        ['id' => 4, 'name' => 'Ekattor HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8', 'logo' => '71', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 654],
+        ['id' => 5, 'name' => 'Channel 24 HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8', 'logo' => '24', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 610],
+        ['id' => 6, 'name' => 'ATN News', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8', 'logo' => 'AT', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 588],
+        ['id' => 7, 'name' => 'Jamuna TV', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8', 'logo' => 'JT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 550],
+        ['id' => 8, 'name' => 'Deepto TV HD', 'category' => 'Entertainment', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8', 'logo' => 'DT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 436],
         ['id' => 9, 'name' => 'Nexus 24 HD', 'category' => 'Movies', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'NX', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 384],
         ['id' => 10, 'name' => 'T Sports', 'category' => 'Sports', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'TS', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 360],
         ['id' => 11, 'name' => 'Kids Stars', 'category' => 'Kids', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'KS', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 315],
         ['id' => 12, 'name' => 'Music Beats', 'category' => 'Music', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'MB', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 292],
+        ['id' => 12, 'name' => 'Somoy TV', 'category' => 'Sports', 'url' => 'https://live.thebosstv.com:30443/dwlive/Somoy-TV/chunks.m3u8', 'logo' => 'FW', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 292],
     ];
 
     /**
@@ -192,54 +193,54 @@ new class extends Component {
     </div>
 
     @script
-        <script>
-            const video = document.getElementById('live-tv-player');
-            const status = document.getElementById('player-status');
-            let player;
+    <script>
+        const video = document.getElementById('live-tv-player');
+        const status = document.getElementById('player-status');
+        let player;
 
-            function updateStatus(message) {
-                if (status) {
-                    status.textContent = message;
-                }
+        function updateStatus(message) {
+            if (status) {
+                status.textContent = message;
+            }
+        }
+
+        async function loadStream(url, name = 'Live stream') {
+            if (!window.shaka || !video || !url) {
+                return;
             }
 
-            async function loadStream(url, name = 'Live stream') {
-                if (!window.shaka || !video || !url) {
-                    return;
-                }
-
-                if (!player) {
-                    shaka.polyfill.installAll();
-                    player = new shaka.Player(video);
-                    player.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
-                }
-
-                try {
-                    updateStatus(`Loading ${name}`);
-                    await player.load(url);
-                    updateStatus(`Playing ${name}`);
-                    await video.play().catch(() => updateStatus('Tap play to start'));
-                } catch (error) {
-                    updateStatus(`Unable to load stream: ${error.code ?? 'unknown'}`);
-                }
+            if (!player) {
+                shaka.polyfill.installAll();
+                player = new shaka.Player(video);
+                player.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
             }
 
-            const bootstrapShaka = () => {
-                if (window.shaka) {
-                    loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
-                }
-            };
-
-            if (!window.shaka) {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js';
-                script.onload = bootstrapShaka;
-                document.head.appendChild(script);
-            } else {
-                bootstrapShaka();
+            try {
+                updateStatus(`Loading ${name}`);
+                await player.load(url);
+                updateStatus(`Playing ${name}`);
+                await video.play().catch(() => updateStatus('Tap play to start'));
+            } catch (error) {
+                updateStatus(`Unable to load stream: ${error.code ?? 'unknown'}`);
             }
+        }
 
-            $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
-        </script>
+        const bootstrapShaka = () => {
+            if (window.shaka) {
+                loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
+            }
+        };
+
+        if (!window.shaka) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js';
+            script.onload = bootstrapShaka;
+            document.head.appendChild(script);
+        } else {
+            bootstrapShaka();
+        }
+
+        $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
+    </script>
     @endscript
 </div>
