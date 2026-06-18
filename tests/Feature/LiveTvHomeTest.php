@@ -8,7 +8,9 @@ test('home page renders the live tv interface', function () {
         ->assertSee('LiveTVPro')
         ->assertSee('Single stream URL')
         ->assertSee('Shaka Player ready')
-        ->assertSee('Star News')
+        ->assertSee('JamunaTV · News')
+        ->assertSee('HLS/M3U8')
+        ->assertSee('200 OK')
         ->assertSee('Monirujjaman Monjil')
         ->assertSee('shaka-player', false);
 });
