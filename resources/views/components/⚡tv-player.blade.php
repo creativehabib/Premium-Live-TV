@@ -238,17 +238,13 @@ new class extends Component {
                     <p class="text-xs font-semibold text-emerald-500">● LIVE PLAYER · {{ $this->selectedChannel()['protocol'] }}</p>
                 </div>
                 <div class="flex gap-2 text-xs font-bold">
-                    <button id="player-play-toggle" type="button" class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-600 dark:bg-emerald-950/40">Pause</button>
-                    <button id="player-fullscreen" type="button" class="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">Full</button>
-                    <button id="player-stop" type="button" class="rounded-full bg-rose-50 px-3 py-1 text-rose-500 dark:bg-rose-950/40">Stop</button>
+                    <button class="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">Full</button>
+                    <button class="rounded-full bg-rose-50 px-3 py-1 text-rose-500 dark:bg-rose-950/40">Stop</button>
                 </div>
             </div>
             <div wire:ignore class="relative aspect-video bg-slate-950">
-                <video id="live-tv-player" class="size-full" autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
+                <video id="live-tv-player" class="size-full" controls autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
                 <div id="player-status" class="pointer-events-none absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">Shaka Player ready</div>
-                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-xs font-bold text-white">
-                    <span class="rounded-full bg-black/60 px-3 py-1">LIVE</span>
-                </div>
             </div>
             <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700">
                 <div class="p-3"><strong class="block text-violet-600">{{ count($channels) }}</strong><span class="text-slate-400">Total</span></div>
@@ -298,9 +294,6 @@ new class extends Component {
     <script>
         const video = document.getElementById('live-tv-player');
         const status = document.getElementById('player-status');
-        const playToggle = document.getElementById('player-play-toggle');
-        const fullscreenButton = document.getElementById('player-fullscreen');
-        const stopButton = document.getElementById('player-stop');
         let shakaPlayer;
         let hlsPlayer;
         let hlsLoader;
@@ -310,14 +303,6 @@ new class extends Component {
             if (status) {
                 status.textContent = message;
             }
-        }
-
-        function updatePlayToggle() {
-            if (!playToggle || !video) {
-                return;
-            }
-
-            playToggle.textContent = video.paused ? 'Play' : 'Pause';
         }
 
         function isHlsStream(url) {
@@ -362,10 +347,8 @@ new class extends Component {
             }
 
             if (video) {
-                video.pause();
                 video.removeAttribute('src');
                 video.load();
-                updatePlayToggle();
             }
         }
 
@@ -472,34 +455,6 @@ new class extends Component {
                 updateStatus(`Unable to load stream: ${error.code ?? error.message ?? 'unknown'}`);
             }
         }
-
-        if (video) {
-            video.addEventListener('play', updatePlayToggle);
-            video.addEventListener('pause', updatePlayToggle);
-        }
-
-        playToggle?.addEventListener('click', async () => {
-            if (!video) {
-                return;
-            }
-
-            if (video.paused) {
-                await video.play().catch(() => updateStatus('Tap play to start'));
-            } else {
-                video.pause();
-            }
-
-            updatePlayToggle();
-        });
-
-        fullscreenButton?.addEventListener('click', () => {
-            video?.requestFullscreen?.();
-        });
-
-        stopButton?.addEventListener('click', () => {
-            resetPlayers();
-            updateStatus('Playback stopped');
-        });
 
         loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
 
