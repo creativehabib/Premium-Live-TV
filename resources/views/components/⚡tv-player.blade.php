@@ -11,25 +11,24 @@ new class extends Component {
 
     public string $activeCategory = 'All';
 
-    public int $selectedChannelId = 1;
+    public int $selectedChannelId = 7;
 
     /**
      * @var list<array{id:int,name:string,category:string,url:string,logo:string,status:string,protocol:string,response:string,viewers:int}>
      */
     public array $channels = [
-        ['id' => 1, 'name' => 'Star News', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1710/output/index.m3u8', 'logo' => 'SN', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 1240],
-        ['id' => 2, 'name' => 'DBC News HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8', 'logo' => 'DN', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 980],
-        ['id' => 3, 'name' => 'Maasranga TV', 'category' => 'Entertainment', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8', 'logo' => 'MT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 732],
-        ['id' => 4, 'name' => 'Ekattor HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8', 'logo' => '71', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 654],
-        ['id' => 5, 'name' => 'Channel 24 HD', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8', 'logo' => '24', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 610],
-        ['id' => 6, 'name' => 'ATN News', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8', 'logo' => 'AT', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 588],
-        ['id' => 7, 'name' => 'Jamuna TV', 'category' => 'News', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8', 'logo' => 'JT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 550],
-        ['id' => 8, 'name' => 'Deepto TV HD', 'category' => 'Entertainment', 'url' => 'https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8', 'logo' => 'DT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 436],
+        ['id' => 1, 'name' => 'Star News', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'SN', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 1240],
+        ['id' => 2, 'name' => 'DBC News HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'DN', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 980],
+        ['id' => 3, 'name' => 'Maasranga TV', 'category' => 'Entertainment', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/sintel-widevine/dash.mpd', 'logo' => 'MT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 732],
+        ['id' => 4, 'name' => 'Ekattor HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => '71', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 654],
+        ['id' => 5, 'name' => 'Channel 24 HD', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => '24', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 610],
+        ['id' => 6, 'name' => 'ATN News', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'AT', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 588],
+        ['id' => 7, 'name' => 'JamunaTV · News', 'category' => 'News', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'JT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 550],
+        ['id' => 8, 'name' => 'Deepto TV HD', 'category' => 'Entertainment', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/sintel-widevine/dash.mpd', 'logo' => 'DT', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 436],
         ['id' => 9, 'name' => 'Nexus 24 HD', 'category' => 'Movies', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'NX', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 384],
         ['id' => 10, 'name' => 'T Sports', 'category' => 'Sports', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'TS', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 360],
         ['id' => 11, 'name' => 'Kids Stars', 'category' => 'Kids', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', 'logo' => 'KS', 'status' => 'LIVE', 'protocol' => 'HLS', 'response' => '200 OK', 'viewers' => 315],
         ['id' => 12, 'name' => 'Music Beats', 'category' => 'Music', 'url' => 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd', 'logo' => 'MB', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 292],
-        ['id' => 12, 'name' => 'Somoy TV', 'category' => 'Sports', 'url' => 'https://live.thebosstv.com:30443/dwlive/Somoy-TV/chunks.m3u8', 'logo' => 'FW', 'status' => 'LIVE', 'protocol' => 'DASH', 'response' => '200 OK', 'viewers' => 292],
     ];
 
     /**
@@ -133,26 +132,58 @@ new class extends Component {
             </div>
         </section>
 
-        <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700">
-            <div class="flex items-center justify-between px-4 py-3">
-                <div>
-                    <h2 class="text-sm font-extrabold">{{ $this->selectedChannel()['name'] }}</h2>
-                    <p class="text-xs font-semibold text-emerald-500">● LIVE PLAYER · {{ $this->selectedChannel()['protocol'] }}</p>
+        <section class="overflow-hidden rounded-[1.35rem] bg-white shadow-2xl shadow-violet-300/40 ring-1 ring-white/90 dark:bg-slate-900 dark:ring-slate-700">
+            <div class="flex items-center justify-between gap-3 px-4 py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-violet-100 dark:bg-slate-800 dark:ring-slate-700">
+                        <span class="text-[10px] font-black text-rose-500">JTV</span>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="truncate text-base font-extrabold text-slate-800 dark:text-white">{{ $this->selectedChannel()['name'] }}</h2>
+                        <div class="mt-1 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                            <span class="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-300">
+                                <span class="grid size-4 place-items-center rounded bg-indigo-100 text-[9px] dark:bg-indigo-950">▶</span>
+                                Live Player
+                            </span>
+                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 ring-1 ring-emerald-300/70 dark:bg-emerald-950/50 dark:text-emerald-300">● Live</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-2 text-xs font-bold">
-                    <button class="rounded-full bg-slate-100 px-3 py-1 dark:bg-slate-800">Full</button>
-                    <button class="rounded-full bg-rose-50 px-3 py-1 text-rose-500 dark:bg-rose-950/40">Stop</button>
+                <div class="flex shrink-0 gap-2 text-sm font-semibold">
+                    <button type="button" data-player-fullscreen class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-600 shadow-sm transition hover:border-violet-200 hover:text-violet-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                        ⛶ Full
+                    </button>
+                    <button type="button" data-player-stop class="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-rose-600 shadow-sm transition hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40">
+                        ■ Stop
+                    </button>
                 </div>
             </div>
-            <div wire:ignore class="relative aspect-video bg-slate-950">
-                <video id="live-tv-player" class="size-full" controls autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
-                <div id="player-status" class="pointer-events-none absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-white">Shaka Player ready</div>
+
+            <div wire:ignore data-player-shell class="group relative aspect-video overflow-hidden bg-slate-950">
+                <video id="live-tv-player" class="size-full object-cover" autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
+
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent px-4 pb-3 pt-20 text-white">
+                    <div id="player-status" class="mb-2 inline-flex rounded-full bg-black/55 px-3 py-1 text-xs font-bold backdrop-blur">Shaka Player ready</div>
+                    <div class="flex items-center gap-3">
+                        <button type="button" data-player-play class="pointer-events-auto grid size-12 shrink-0 place-items-center rounded-full bg-white/10 text-xl shadow-lg ring-2 ring-white/70 backdrop-blur transition hover:bg-white/20">▶</button>
+                        <button type="button" data-player-mute class="pointer-events-auto grid size-9 shrink-0 place-items-center rounded-full bg-white/10 text-sm backdrop-blur transition hover:bg-white/20">🔇</button>
+                        <div class="flex min-w-0 flex-1 items-center gap-2">
+                            <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/30">
+                                <div data-player-progress class="h-full w-[22%] rounded-full bg-white"></div>
+                            </div>
+                            <span class="flex shrink-0 items-center gap-1 text-xs font-black uppercase tracking-wide"><span class="size-2 rounded-full bg-red-500"></span> Live</span>
+                        </div>
+                        <button type="button" data-player-pip class="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-full bg-violet-600 text-lg shadow-lg shadow-violet-950/40 transition hover:bg-violet-500">▣</button>
+                        <button type="button" data-player-fullscreen class="pointer-events-auto grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-lg backdrop-blur transition hover:bg-white/25">⛶</button>
+                    </div>
+                </div>
             </div>
-            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700">
-                <div class="p-3"><strong class="block text-violet-600">44</strong><span class="text-slate-400">Total</span></div>
-                <div class="p-3"><strong class="block text-emerald-500">44</strong><span class="text-slate-400">Live</span></div>
-                <div class="p-3"><strong class="block text-orange-500">0</strong><span class="text-slate-400">Down</span></div>
-                <div class="p-3"><strong class="block text-rose-500">0</strong><span class="text-slate-400">Errors</span></div>
+
+            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 bg-white text-xs dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-900">
+                <div class="p-4"><span class="block text-slate-400">TYPE</span><strong class="mt-1 block text-sm text-slate-700 dark:text-slate-100">HLS/M3U8</strong></div>
+                <div class="p-4"><span class="block text-slate-400">STATUS</span><strong class="mt-1 block text-sm text-emerald-500">LIVE</strong></div>
+                <div class="p-4"><span class="block text-slate-400">PROTOCOL</span><strong class="mt-1 block text-sm text-slate-700 dark:text-slate-100">{{ $this->selectedChannel()['protocol'] === 'HLS' ? 'HTTPS' : $this->selectedChannel()['protocol'] }}</strong></div>
+                <div class="p-4"><span class="block text-slate-400">RESPONSE</span><strong class="mt-1 block text-sm text-slate-700 dark:text-slate-100">{{ $this->selectedChannel()['response'] }}</strong></div>
             </div>
         </section>
 
@@ -193,54 +224,140 @@ new class extends Component {
     </div>
 
     @script
-    <script>
-        const video = document.getElementById('live-tv-player');
-        const status = document.getElementById('player-status');
-        let player;
+        <script>
+            const shell = document.querySelector('[data-player-shell]');
+            const video = document.getElementById('live-tv-player');
+            const status = document.getElementById('player-status');
+            const progress = document.querySelector('[data-player-progress]');
+            const playButtons = document.querySelectorAll('[data-player-play]');
+            const muteButtons = document.querySelectorAll('[data-player-mute]');
+            const stopButtons = document.querySelectorAll('[data-player-stop]');
+            const fullscreenButtons = document.querySelectorAll('[data-player-fullscreen]');
+            const pipButtons = document.querySelectorAll('[data-player-pip]');
+            let player;
 
-        function updateStatus(message) {
-            if (status) {
-                status.textContent = message;
-            }
-        }
-
-        async function loadStream(url, name = 'Live stream') {
-            if (!window.shaka || !video || !url) {
-                return;
-            }
-
-            if (!player) {
-                shaka.polyfill.installAll();
-                player = new shaka.Player(video);
-                player.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
+            function updateStatus(message) {
+                if (status) {
+                    status.textContent = message;
+                }
             }
 
-            try {
-                updateStatus(`Loading ${name}`);
-                await player.load(url);
-                updateStatus(`Playing ${name}`);
-                await video.play().catch(() => updateStatus('Tap play to start'));
-            } catch (error) {
-                updateStatus(`Unable to load stream: ${error.code ?? 'unknown'}`);
+            function syncControls() {
+                playButtons.forEach((button) => {
+                    button.textContent = video && !video.paused ? '❚❚' : '▶';
+                });
+
+                muteButtons.forEach((button) => {
+                    button.textContent = video && video.muted ? '🔇' : '🔊';
+                });
             }
-        }
 
-        const bootstrapShaka = () => {
-            if (window.shaka) {
-                loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
+            async function loadStream(url, name = 'Live stream') {
+                if (!window.shaka || !video || !url) {
+                    return;
+                }
+
+                if (!player) {
+                    shaka.polyfill.installAll();
+                    player = new shaka.Player(video);
+                    player.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
+                }
+
+                try {
+                    updateStatus(`Loading ${name}`);
+                    await player.load(url);
+                    updateStatus(`Playing ${name}`);
+                    await video.play().catch(() => updateStatus('Tap play to start'));
+                    syncControls();
+                } catch (error) {
+                    updateStatus(`Unable to load stream: ${error.code ?? 'unknown'}`);
+                }
             }
-        };
 
-        if (!window.shaka) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js';
-            script.onload = bootstrapShaka;
-            document.head.appendChild(script);
-        } else {
-            bootstrapShaka();
-        }
+            const bootstrapShaka = () => {
+                if (window.shaka) {
+                    loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
+                }
+            };
 
-        $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
-    </script>
+            if (!window.shaka) {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js';
+                script.onload = bootstrapShaka;
+                document.head.appendChild(script);
+            } else {
+                bootstrapShaka();
+            }
+
+            playButtons.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    if (!video) {
+                        return;
+                    }
+
+                    if (video.paused) {
+                        await video.play().catch(() => updateStatus('Tap play to start'));
+                    } else {
+                        video.pause();
+                    }
+
+                    syncControls();
+                });
+            });
+
+            muteButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    if (!video) {
+                        return;
+                    }
+
+                    video.muted = !video.muted;
+                    syncControls();
+                });
+            });
+
+            stopButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    if (!video) {
+                        return;
+                    }
+
+                    video.pause();
+                    video.currentTime = 0;
+                    updateStatus('Playback stopped');
+                    syncControls();
+                });
+            });
+
+            fullscreenButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    if (shell?.requestFullscreen) {
+                        shell.requestFullscreen();
+                    }
+                });
+            });
+
+            pipButtons.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    if (document.pictureInPictureElement) {
+                        await document.exitPictureInPicture();
+                    } else if (video?.requestPictureInPicture) {
+                        await video.requestPictureInPicture();
+                    }
+                });
+            });
+
+            video?.addEventListener('play', syncControls);
+            video?.addEventListener('pause', syncControls);
+            video?.addEventListener('timeupdate', () => {
+                if (progress && video.duration && Number.isFinite(video.duration)) {
+                    progress.style.width = `${Math.min((video.currentTime / video.duration) * 100, 100)}%`;
+                }
+            });
+
+            syncControls();
+
+            $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
+        </script>
     @endscript
 </div>
