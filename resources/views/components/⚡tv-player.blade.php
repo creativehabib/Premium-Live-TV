@@ -128,7 +128,6 @@ new class extends Component {
         }
 
         try {
-            // Check if the stream is accessible
             $response = Http::timeout(5)->withoutVerifying()
                 ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'])
                 ->get($url);
@@ -161,9 +160,6 @@ new class extends Component {
         $this->channels = array_values(array_filter($this->channels, fn($c) => $c['status'] !== 'DEAD'));
     }
 
-    /**
-     * @return array
-     */
     public function selectedChannel(): array
     {
         return collect($this->channels)->firstWhere('id', $this->selectedChannelId) ?? [
@@ -179,9 +175,6 @@ new class extends Component {
         ];
     }
 
-    /**
-     * @return list<array>
-     */
     private function parsePlaylist(string $playlist, string $fallbackCategory): array
     {
         $channels = [];
@@ -214,7 +207,6 @@ new class extends Component {
 
             $name = $pendingName ?? basename(parse_url($line, PHP_URL_PATH) ?: 'Live Channel');
 
-            // --- SMART STATUS LOGIC BASED ON URL ---
             $status = 'LIVE';
             $isHttp = false;
             $proxyNeeded = false;
@@ -251,9 +243,28 @@ new class extends Component {
     }
 };
 ?>
-<div class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#d8dcff_0,#f9f7ff_28%,#f2ecff_48%,#eafbf8_100%)] text-slate-800 dark:bg-slate-950 dark:text-slate-100 relative">
+<div id="app-wrapper" class="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,#d8dcff_0,#f9f7ff_28%,#f2ecff_48%,#eafbf8_100%)] text-slate-800 dark:bg-slate-950 dark:text-slate-100 relative transition-colors duration-500">
 
     <style>
+        /* IMPORT PREMIUM FONTS */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+
+        /* TYPOGRAPHY REFINEMENT */
+        #app-wrapper {
+            font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* CUSTOM SCROLLBAR (Premium Glass Look) */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.7); }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.5); }
+        .dark ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.4) transparent; }
+
         /* Custom Volume Slider CSS */
         input[type=range].custom-vol {
             -webkit-appearance: none;
@@ -272,67 +283,116 @@ new class extends Component {
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
             transition: transform 0.1s;
         }
-        input[type=range].custom-vol::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+        input[type=range].custom-vol::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* Micro-interaction: Staggered Fade In Up */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-fade-in > div {
+            animation: fadeInUp 0.4s ease-out forwards;
+            opacity: 0;
+        }
+        .stagger-fade-in > div:nth-child(1) { animation-delay: 0.05s; }
+        .stagger-fade-in > div:nth-child(2) { animation-delay: 0.1s; }
+        .stagger-fade-in > div:nth-child(3) { animation-delay: 0.15s; }
+        .stagger-fade-in > div:nth-child(4) { animation-delay: 0.2s; }
+        .stagger-fade-in > div:nth-child(5) { animation-delay: 0.25s; }
+        .stagger-fade-in > div:nth-child(n+6) { animation-delay: 0.3s; }
+
+        /* THEATER MODE STYLES */
+        body.theater-mode-active #app-wrapper { background: #020617 !important; }
+        body.theater-mode-active #content-container { max-width: 1500px !important; }
+        body.theater-mode-active .dim-in-theater { opacity: 0.15; transition: opacity 0.4s ease-in-out; filter: grayscale(0.5); }
+        body.theater-mode-active .dim-in-theater:hover { opacity: 1; filter: grayscale(0); }
+        body.theater-mode-active .player-section-wrapper { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-color: #1e293b; }
+        #content-container { transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* MULTI-VIEW / VIDEO GRID STYLES */
+        .video-slot {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .video-slot video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .slot-active {
+            z-index: 10;
+            box-shadow: inset 0 0 0 2px #6366f1; /* Indigo 500 ring */
+            opacity: 1 !important;
+        }
+        .slot-inactive {
+            z-index: 0;
+            opacity: 0.6;
+        }
+        .slot-inactive:hover {
+            opacity: 0.9;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3);
         }
     </style>
 
-    <div class="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
-        <header class="text-center">
-            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100">
+    <div id="content-container" class="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
+
+        <header class="text-center dim-in-theater">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100 hover:shadow-violet-300 transition duration-300">
                 <span class="grid size-7 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-sky-500 text-white">▶</span>
                 LiveTVPro
             </div>
-            <p class="mt-1 text-xs font-medium uppercase tracking-[0.28em] text-slate-400">HLS / DASH / M3U8 Live Streaming Portal</p>
-            <div class="mt-3 flex justify-center gap-2 text-[11px] font-semibold">
-                <span class="rounded-full bg-white/80 px-3 py-1 text-violet-600 shadow-sm">● Groups: {{ count($groups) }}</span>
-                <span class="rounded-full bg-sky-500 px-3 py-1 text-white shadow-sm">Join Telegram</span>
+            <p class="mt-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">HLS / DASH / M3U8 Live Streaming Portal</p>
+            <div class="mt-3 flex justify-center gap-2 text-[11px] font-bold">
+                <span class="rounded-full bg-white/80 px-3 py-1 text-violet-600 shadow-sm transition hover:bg-white hover:-translate-y-0.5 cursor-pointer tracking-wide">● Groups: {{ count($groups) }}</span>
+                <span class="rounded-full bg-sky-500 px-3 py-1 text-white shadow-sm transition hover:bg-sky-400 hover:-translate-y-0.5 active:scale-95 cursor-pointer tracking-wide">Join Telegram</span>
             </div>
         </header>
 
-        <section class="rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700">
-            <div class="flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-wider text-violet-600">
+        <section class="dim-in-theater rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
+            <div class="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
                 <span>● Single stream URL</span>
                 <span class="text-slate-400">HLS / DASH / HTML5</span>
             </div>
             <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-                <input wire:model="singleStreamUrl" class="min-h-11 flex-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 text-xs outline-none ring-violet-300 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-800" placeholder="https://example.com/stream.m3u8">
-                <button wire:click="playSingleStream" class="rounded-xl bg-violet-600 px-5 py-3 cursor-pointer text-xs font-bold text-white shadow-lg shadow-violet-300 transition hover:bg-violet-700">▶ Play</button>
-                <button type="button" class="rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer text-xs font-bold text-violet-600 shadow-sm dark:border-slate-700 dark:bg-slate-800">ⓘ Check</button>
+                <input wire:model="singleStreamUrl" class="min-h-11 flex-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800" placeholder="https://example.com/stream.m3u8">
+                <button wire:click="playSingleStream" class="rounded-xl bg-violet-600 px-5 py-3 cursor-pointer text-xs font-bold text-white shadow-lg shadow-violet-300 transition-all duration-300 hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 hover:shadow-violet-400/50">▶ Play</button>
+                <button type="button" class="rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer text-xs font-bold text-violet-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-all duration-200 hover:bg-violet-50 active:scale-95">ⓘ Check</button>
             </div>
-            <label class="mt-4 block text-xs font-bold uppercase tracking-wider text-violet-600">Playlist / M3U / HTML embed</label>
-            <textarea wire:model="playlist" rows="4" class="mt-2 w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-xs outline-none ring-violet-300 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-800"></textarea>
+            <label class="mt-4 block text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">Playlist / M3U / HTML embed</label>
+            <textarea wire:model="playlist" rows="4" class="mt-2 w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800"></textarea>
             <div class="mt-3 flex gap-2">
-                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="rounded-xl bg-violet-600 px-4 py-2 cursor-pointer text-xs font-bold text-white">Reload Group</button>
-                <button wire:click="clearInputs" class="rounded-xl bg-slate-100 px-4 py-2 cursor-pointer text-xs font-bold text-slate-500 dark:bg-slate-800">Clear</button>
+                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="rounded-xl bg-violet-600 px-4 py-2 cursor-pointer text-xs font-bold text-white transition-all duration-200 hover:bg-violet-700 hover:-translate-y-0.5 hover:shadow-md active:scale-95">Reload Group</button>
+                <button wire:click="clearInputs" class="rounded-xl bg-slate-100 px-4 py-2 cursor-pointer text-xs font-bold text-slate-500 dark:bg-slate-800 transition-all duration-200 hover:bg-slate-200 active:scale-95">Clear</button>
             </div>
         </section>
 
-        <section class="rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700">
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-violet-600">
+        <section class="dim-in-theater rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
                 <span>📡 পাবলিক সোর্স — ক্লিক করে লোড + চেক</span>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-800">{{ count($this->filteredChannels()) }} visible</span>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-800 transition hover:bg-slate-200 tracking-wide">{{ count($this->filteredChannels()) }} visible</span>
             </div>
             <div class="flex flex-wrap gap-2">
                 @foreach ($groups as $group)
-                    <button wire:key="group-{{ $group['key'] }}" wire:click="loadGroup('{{ $group['key'] }}')" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition {{ $activeGroupKey === $group['key'] ? 'border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-200' : 'border-violet-100 bg-white text-slate-600 hover:border-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200' }}">
-                        <span>{{ $group['name'] }}</span>
-                        <span class="rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-black uppercase text-violet-600">{{ $group['badge'] }}</span>
+                    <button wire:key="group-{{ $group['key'] }}" wire:click="loadGroup('{{ $group['key'] }}')" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-300 active:scale-95 hover:-translate-y-0.5 hover:shadow-md {{ $activeGroupKey === $group['key'] ? 'border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-200/60' : 'border-violet-100 bg-white text-slate-600 hover:border-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200' }}">
+                        <span class="tracking-wide">{{ $group['name'] }}</span>
+                        <span class="rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider transition-colors {{ $activeGroupKey === $group['key'] ? 'bg-white/20 text-white' : 'bg-violet-50 text-violet-600' }}">{{ $group['badge'] }}</span>
                     </button>
                 @endforeach
             </div>
             @if ($loadMessage)
-                <p class="mt-3 text-xs font-semibold text-slate-500">⚠️ {{ $loadMessage }}</p>
+                <p class="mt-3 text-xs font-semibold text-slate-500 animate-pulse tracking-wide">⚠️ {{ $loadMessage }}</p>
             @endif
-            <p class="mt-3 text-[11px] font-semibold text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
+            <p class="mt-3 text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
         </section>
 
-        <!-- Player Section -->
-        <section class="overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700">
-            <!-- TOP BAR DESIGN -->
+        <section class="player-section-wrapper overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700 transition-all duration-500 hover:shadow-violet-200/60">
             <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <div class="grid size-11 shrink-0 place-items-center rounded-[10px] border border-slate-200 bg-white overflow-hidden text-xs font-black text-indigo-600 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                    <div class="grid size-11 shrink-0 place-items-center rounded-[10px] border border-slate-200 bg-white overflow-hidden text-xs font-black text-indigo-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 hover:scale-105">
                         @if(str_starts_with($this->selectedChannel()['logo'], 'http'))
                             <img src="{{ $this->selectedChannel()['logo'] }}" alt="Logo" class="size-full object-contain p-0.5">
                         @else
@@ -340,16 +400,16 @@ new class extends Component {
                         @endif
                     </div>
                     <div class="flex flex-col justify-center">
-                        <h2 class="text-[15px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight">
+                        <h2 class="text-[15px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight transition-colors hover:text-indigo-600 tracking-wide">
                             {{ $this->selectedChannel()['name'] }} <span class="font-semibold text-slate-500">· {{ $this->selectedChannel()['category'] }}</span>
                         </h2>
                         <div class="mt-1 flex items-center gap-2">
-                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider">
                                 <svg class="size-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg>
                                 LIVE PLAYER
                             </div>
-                            <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/60 px-2 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200/60 dark:bg-emerald-900/30 dark:ring-emerald-800">
-                                <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/60 px-2 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200/60 dark:bg-emerald-900/30 dark:ring-emerald-800 shadow-sm tracking-wider">
+                                <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 LIVE
                             </span>
                         </div>
@@ -357,29 +417,66 @@ new class extends Component {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="top-fullscreen-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                    <button id="top-fullscreen-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 tracking-wide">
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                         Full
                     </button>
-                    <button id="top-stop-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition hover:bg-rose-50 dark:border-rose-900/40 dark:bg-slate-800 dark:hover:bg-rose-900/60">
+                    <button id="top-stop-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/40 dark:bg-slate-800 dark:hover:bg-rose-900/60 tracking-wide">
                         <span class="size-2 rounded-sm bg-rose-500"></span>
                         Stop
                     </button>
                 </div>
             </div>
 
-            <div wire:ignore id="video-container" class="relative aspect-video bg-black overflow-hidden transition-all">
-                <video id="live-tv-player" class="size-full" autoplay muted playsinline poster="https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=1400&q=80"></video>
+            <div wire:ignore id="video-container" class="relative aspect-video bg-black overflow-hidden transition-all group">
 
-                <div id="player-status" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur">Shaka Player ready</div>
+                <div id="video-grid" class="absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300">
 
-                <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-100 transition-opacity duration-500">
+                    <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)">
+                        <video id="player-1" autoplay muted playsinline x-webkit-airplay="allow"></video>
+                        <div id="spinner-1" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
+                            <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                        </div>
+                        <div id="status-1" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                        <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 1</div>
+                    </div>
+
+                    <div id="slot-2" class="video-slot slot-inactive hidden" onclick="setActiveSlot(2)">
+                        <video id="player-2" autoplay muted playsinline x-webkit-airplay="allow"></video>
+                        <div id="spinner-2" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
+                            <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                        </div>
+                        <div id="status-2" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                        <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 2</div>
+                    </div>
+
+                    <div id="slot-3" class="video-slot slot-inactive hidden" onclick="setActiveSlot(3)">
+                        <video id="player-3" autoplay muted playsinline x-webkit-airplay="allow"></video>
+                        <div id="spinner-3" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
+                            <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                        </div>
+                        <div id="status-3" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                        <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 3</div>
+                    </div>
+
+                    <div id="slot-4" class="video-slot slot-inactive hidden" onclick="setActiveSlot(4)">
+                        <video id="player-4" autoplay muted playsinline x-webkit-airplay="allow"></video>
+                        <div id="spinner-4" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
+                            <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                        </div>
+                        <div id="status-4" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                        <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 4</div>
+                    </div>
+
+                </div>
+
+                <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-100 transition-opacity duration-500 z-30">
                     <div class="flex items-center gap-4">
-                        <button id="play-pause-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95">
+                        <button id="play-pause-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
                             <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                         </button>
                         <div class="group/vol flex items-center gap-2">
-                            <button id="mute-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95">
+                            <button id="mute-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
                                 <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
                             </button>
                             <input type="range" id="volume-slider" class="custom-vol w-0 cursor-pointer opacity-0 transition-all duration-300 group-hover/vol:w-20 group-hover/vol:opacity-100" min="0" max="1" step="0.05" value="0">
@@ -391,25 +488,33 @@ new class extends Component {
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <button id="pip-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95" title="Picture-in-Picture">
+                        <button id="layout-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Multi-View / Split Screen">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
+                        </button>
+                        <button id="airplay-btn" class="hidden grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="AirPlay">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4l-4 4m4-4l4 4m-4-4v12"></path></svg>
+                        </button>
+                        <button id="theater-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Theater Mode (T)">
+                            <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"></path></svg>
+                        </button>
+                        <button id="pip-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Picture-in-Picture">
                             <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4.5" width="20" height="15" rx="2"></rect><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none"></rect></svg>
                         </button>
-                        <button id="fullscreen-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/30 hover:scale-105 active:scale-95" title="Fullscreen">
+                        <button id="fullscreen-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Fullscreen (F / Double Click)">
                             <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700">
-                <div class="p-3"><strong class="block text-violet-600">{{ count($channels) }}</strong><span class="text-slate-400">Total</span></div>
-                <div class="p-3"><strong class="block text-emerald-500">{{ count($channels) }}</strong><span class="text-slate-400">Live</span></div>
-                <div class="p-3"><strong class="block text-orange-500">0</strong><span class="text-slate-400">Down</span></div>
-                <div class="p-3"><strong class="block text-rose-500">0</strong><span class="text-slate-400">Errors</span></div>
+            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700 transition-colors">
+                <div class="p-3 hover:bg-slate-50 transition cursor-default"><strong class="block text-violet-600 text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Total</span></div>
+                <div class="p-3 hover:bg-emerald-50 transition cursor-default"><strong class="block text-emerald-500 text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Live</span></div>
+                <div class="p-3 hover:bg-orange-50 transition cursor-default"><strong class="block text-orange-500 text-sm">0</strong><span class="text-slate-400 font-medium">Down</span></div>
+                <div class="p-3 hover:bg-rose-50 transition cursor-default"><strong class="block text-rose-500 text-sm">0</strong><span class="text-slate-400 font-medium">Errors</span></div>
             </div>
         </section>
 
-        <!-- CHANNEL LIST WITH SMART STATUSES & SKELETON LOADER -->
         @php
             $visibleChannels = $this->filteredChannels();
             $liveCount = collect($visibleChannels)->whereIn('status', ['LIVE', 'READY'])->count();
@@ -417,54 +522,50 @@ new class extends Component {
             $deadCount = collect($visibleChannels)->where('status', 'DEAD')->count();
         @endphp
 
-        <section class="rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800">
+        <section class="dim-in-theater rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 transition-shadow hover:shadow-indigo-200">
 
-            <!-- Top Action Bar -->
             <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <!-- Status Tabs -->
                 <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50">
-                    <button class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 cursor-pointer text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition">
-                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">{{ count($visibleChannels) }}</span>
+                    <button class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 cursor-pointer text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 tracking-wide">
+                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 transition-colors">{{ count($visibleChannels) }}</span>
                     </button>
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 transition dark:text-slate-400 dark:hover:text-slate-200">
+                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
                         <span class="size-2 rounded-full bg-emerald-500"></span> চলবে <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $liveCount }}</span>
                     </button>
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 transition dark:text-slate-400 dark:hover:text-slate-200">
+                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
                         <span class="size-2 rounded-full bg-orange-500"></span> ব্লকড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $blockedCount }}</span>
                     </button>
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 transition dark:text-slate-400 dark:hover:text-slate-200">
+                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
                         <span class="size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $deadCount }}</span>
                     </button>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="flex items-center gap-2">
-                    <button class="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition hover:bg-indigo-50 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                    <button class="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
                         চলবে কপি
                     </button>
-                    <button class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition hover:bg-indigo-50 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30">
+                    <button class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         .m3u
                     </button>
-                    <button wire:click="deleteBlockedChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition hover:bg-rose-50 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                    <button wire:click="deleteBlockedChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         ব্লকড ডিলিট
                     </button>
-                    <button wire:click="deleteDeadChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition hover:bg-rose-50 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                    <button wire:click="deleteDeadChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
                         <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         ডেড ডিলিট
                     </button>
                 </div>
             </div>
 
-            <!-- Search Bar -->
             <div class="px-4 py-3">
-                <div class="relative">
-                    <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input wire:model.live="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-10 text-sm font-medium text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-1 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
+                <div class="relative group">
+                    <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input wire:model.live="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-10 text-sm font-medium text-slate-700 outline-none transition-all duration-300 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-md focus:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900 dark:focus:ring-indigo-900/50" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
                     @if($search !== '')
-                        <button wire:click="$set('search', '')" class="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full bg-slate-200 text-slate-500 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600">
+                        <button wire:click="$set('search', '')" class="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full bg-slate-200 text-slate-500 hover:bg-rose-500 hover:text-white transition-all active:scale-90 dark:bg-slate-700 dark:text-slate-400">
                             <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     @endif
@@ -472,14 +573,13 @@ new class extends Component {
             </div>
 
             <div class="flex items-center justify-between px-4 pb-2 pt-1 border-b border-slate-50 dark:border-slate-800">
-                <label class="flex items-center gap-2 text-xs font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
-                    <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer">
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
+                    <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer transition-transform active:scale-90">
                     সব নির্বাচন করুন
                 </label>
-                <span class="text-xs font-semibold text-slate-400">{{ count($visibleChannels) }}টি</span>
+                <span class="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">{{ count($visibleChannels) }}টি</span>
             </div>
 
-            <!-- SKELETON LOADER (Shows while loadGroup is running) -->
             <div wire:loading wire:target="loadGroup" class="flex w-full flex-col gap-2 p-3">
                 @for ($i = 0; $i < 5; $i++)
                     <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 animate-pulse dark:border-slate-800 dark:bg-slate-800/50">
@@ -503,93 +603,85 @@ new class extends Component {
                 @endfor
             </div>
 
-            <!-- ACTUAL CHANNEL LIST (Hides while loadGroup is running) -->
-            <div wire:loading.remove wire:target="loadGroup" class="flex flex-col gap-2 p-3">
+            <div wire:loading.remove wire:target="loadGroup" class="flex flex-col gap-2 p-3 stagger-fade-in max-h-[800px] overflow-y-auto">
                 @foreach ($visibleChannels as $channel)
                     @php
-                        // Determine styles based on channel status
                         $isDead = $channel['status'] === 'DEAD';
                         $isBlocked = $channel['status'] === 'BLOCKED';
 
-                        $containerClass = 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-900/10';
-                        if ($isDead) $containerClass = 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-900/10';
-                        elseif ($isBlocked) $containerClass = 'border-orange-200 bg-orange-50/40 dark:border-orange-900/40 dark:bg-orange-900/10';
+                        $containerClass = 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-900/10 hover:shadow-emerald-200/40 hover:border-emerald-300';
+                        if ($isDead) $containerClass = 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-900/10 hover:shadow-rose-200/40 hover:border-rose-300';
+                        elseif ($isBlocked) $containerClass = 'border-orange-200 bg-orange-50/40 dark:border-orange-900/40 dark:bg-orange-900/10 hover:shadow-orange-200/40 hover:border-orange-300';
                     @endphp
 
-                    <div wire:key="channel-{{ $channel['id'] }}" class="flex items-center gap-3 rounded-xl border p-3 transition hover:-translate-y-0.5 hover:shadow-sm {{ $containerClass }}">
+                    <div wire:key="channel-{{ $channel['id'] }}" class="flex items-center gap-3 rounded-xl border p-3 group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md {{ $containerClass }}">
 
-                        <!-- Checkbox -->
-                        <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0">
+                        <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
 
-                        <!-- Logo -->
-                        <div class="grid size-12 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800">
+                        <div class="grid size-12 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
                             @if(str_starts_with($channel['logo'], 'http'))
-                                <img src="{{ $channel['logo'] }}" alt="Logo" class="size-full object-contain p-0.5">
+                                <img src="{{ $channel['logo'] }}" alt="Logo" class="size-full object-contain p-0.5 transition-transform duration-500 group-hover:scale-110">
                             @else
                                 <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">{{ $channel['logo'] }}</span>
                             @endif
                         </div>
 
-                        <!-- Details -->
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-2">
-                                <h3 class="truncate text-sm font-extrabold text-slate-800 dark:text-slate-200">{{ $channel['name'] }}</h3>
-                                <span class="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">{{ $channel['category'] }}</span>
+                                <h3 class="truncate text-sm font-extrabold text-slate-800 dark:text-slate-200 transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{{ $channel['name'] }}</h3>
+                                <span class="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 shadow-sm">{{ $channel['category'] }}</span>
 
-                                <!-- HTTP Mixed Content Badge for Blocked -->
                                 @if($channel['is_http'])
-                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50">HTTP (mixed)</span>
+                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm animate-pulse">HTTP (mixed)</span>
                                 @endif
                                 @if($channel['proxy_needed'])
-                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50">proxy লাগবে</span>
+                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm">proxy লাগবে</span>
                                 @endif
                             </div>
 
                             <p class="truncate text-[11px] font-medium text-slate-500 mt-0.5 dark:text-slate-400" title="{{ $channel['url'] }}">{{ $channel['url'] }}</p>
-                            <!-- Mock Time -->
                             <p class="text-[10px] font-medium text-slate-400 mt-0.5 dark:text-slate-500">৬:৫৪:২৫ AM</p>
                         </div>
 
-                        <!-- Actions (Right Side) based on Status -->
                         <div class="flex items-center gap-2 shrink-0">
                             @if($isDead)
-                                <span class="flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 cursor-pointer text-[11px] font-bold text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50">
+                                <span class="flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50 shadow-sm">
                                     <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     DEAD
                                 </span>
-                                <button wire:click="verifyChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                <button wire:click="verifyChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                     Retry
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm hover:bg-rose-50 transition dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     ডিলিট
                                 </button>
                             @elseif($isBlocked)
-                                <span class="flex items-center gap-1.5 rounded-full bg-orange-100/80 px-2.5 py-1 cursor-pointer text-[11px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50">
+                                <span class="flex items-center gap-1.5 rounded-full bg-orange-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50 shadow-sm">
                                     <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                     BLOCKED
                                 </span>
-                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                     <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
                                 </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> Copy
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm hover:bg-rose-50 transition dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             @else
-                                <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
-                                    <span class="size-1.5 rounded-full bg-emerald-500"></span> চলবে
+                                <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm">
+                                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> চলবে
                                 </span>
-                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-indigo-400">
+                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-indigo-400">
                                     <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
                                 </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> Copy
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm hover:bg-rose-50 hover:text-rose-600 transition dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
                                     <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             @endif
@@ -600,23 +692,21 @@ new class extends Component {
                 @if(count($visibleChannels) === 0)
                     <div class="py-10 text-center text-slate-500 dark:text-slate-400">
                         <svg class="mx-auto size-10 opacity-30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <p class="text-sm font-semibold">কোনো চ্যানেল পাওয়া যায়নি</p>
+                        <p class="text-sm font-semibold tracking-wide">কোনো চ্যানেল পাওয়া যায়নি</p>
                     </div>
                 @endif
             </div>
         </section>
 
-        <footer class="pb-8 text-center text-xs font-bold text-slate-500">
+        <footer class="dim-in-theater pb-8 text-center text-xs font-bold text-slate-500">
             <p class="uppercase tracking-[0.3em] text-slate-400">Developed by</p>
-            <p class="mt-1 text-slate-700 dark:text-slate-200">Monirujjaman Monjil</p>
-            <div class="mx-auto mt-3 grid size-14 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-sky-500 text-lg text-white shadow-lg shadow-violet-300">👨‍💻</div>
+            <p class="mt-1 text-slate-700 dark:text-slate-200 transition-colors hover:text-indigo-600 cursor-pointer tracking-wide">Monirujjaman Monjil</p>
+            <div class="mx-auto mt-3 grid size-14 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-sky-500 text-lg text-white shadow-lg shadow-violet-300 transition-transform duration-300 hover:scale-110 cursor-pointer">👨‍💻</div>
         </footer>
     </div>
 
-    <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Global JS for Copy & Toast -->
     <script>
         window.showToast = function(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container');
@@ -632,13 +722,11 @@ new class extends Component {
 
             toastContainer.appendChild(toast);
 
-            // Animate in
             setTimeout(() => {
                 toast.classList.remove('translate-y-10', 'opacity-0');
                 toast.classList.add('translate-y-0', 'opacity-100');
             }, 10);
 
-            // Animate out
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-10', 'opacity-0');
@@ -654,7 +742,6 @@ new class extends Component {
                     window.showToast('Failed to copy link!', 'error');
                 });
             } else {
-                // Fallback for HTTP / non-secure contexts / Local network
                 let textArea = document.createElement("textarea");
                 textArea.value = text;
                 textArea.style.position = "fixed";
@@ -672,21 +759,47 @@ new class extends Component {
                 textArea.remove();
             }
         };
+
+        // Theater Mode Toggle Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const theaterBtn = document.getElementById('theater-btn');
+            if(theaterBtn) {
+                theaterBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('theater-mode-active');
+                    const isTheater = document.body.classList.contains('theater-mode-active');
+                    window.showToast(isTheater ? 'Theater Mode ON' : 'Theater Mode OFF');
+                    if (isTheater) {
+                        const playerSection = document.querySelector('.player-section-wrapper');
+                        if (playerSection) {
+                            window.scrollTo({ top: playerSection.offsetTop - 20, behavior: 'smooth' });
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
     @script
     <script>
-        const video = document.getElementById('live-tv-player');
-        const videoContainer = document.getElementById('video-container');
-        const status = document.getElementById('player-status');
+        // Multi-View State
+        let activeSlot = 1;
+        let currentLayout = 1; // 1, 2, or 4
+        let hlsPlayers = {1: null, 2: null, 3: null, 4: null};
+        let shakaPlayers = {1: null, 2: null, 3: null, 4: null};
+        let retryCounts = {1: 0, 2: 0, 3: 0, 4: 0};
+        const MAX_RETRIES = 3;
 
-        // Custom Controls
+        // Custom Controls Global
         const customControls = document.getElementById('custom-controls');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const muteBtn = document.getElementById('mute-btn');
         const volumeSlider = document.getElementById('volume-slider');
         const pipBtn = document.getElementById('pip-btn');
+        const airplayBtn = document.getElementById('airplay-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const layoutBtn = document.getElementById('layout-btn');
+
+        // Top bar buttons
         const topFullscreenBtn = document.getElementById('top-fullscreen-btn');
         const topStopBtn = document.getElementById('top-stop-btn');
 
@@ -696,15 +809,75 @@ new class extends Component {
         const volHighIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
         const volMuteIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
 
-        let shakaPlayer;
-        let hlsPlayer;
-        let hlsLoader;
-        let shakaLoader;
+        // Helper: Get currently active video element
+        function getActiveVideo() { return document.getElementById('player-' + activeSlot); }
+
+        // --- MULTI-VIEW UI LOGIC ---
+        window.setActiveSlot = function(slot) {
+            // Un-highlight all slots and mute them
+            for(let i=1; i<=4; i++) {
+                const slotEl = document.getElementById('slot-'+i);
+                slotEl.classList.remove('slot-active');
+                slotEl.classList.add('slot-inactive');
+
+                const vid = document.getElementById('player-'+i);
+                if(i !== slot) {
+                    vid.muted = true;
+                }
+            }
+
+            // Highlight new active slot
+            activeSlot = slot;
+            const newSlotEl = document.getElementById('slot-'+slot);
+            newSlotEl.classList.remove('slot-inactive');
+            newSlotEl.classList.add('slot-active');
+
+            // Restore volume settings for the active video
+            const activeVideo = getActiveVideo();
+            // Assuming global default if not set, else it remembers its last state
+            if(activeVideo.volume === 0 && !activeVideo.muted) activeVideo.volume = 0.5;
+
+            // Update Bottom Control Bar to match the newly active video
+            playPauseBtn.innerHTML = activeVideo.paused ? playIcon : pauseIcon;
+            volumeSlider.value = activeVideo.muted ? 0 : activeVideo.volume;
+            muteBtn.innerHTML = activeVideo.muted || activeVideo.volume === 0 ? volMuteIcon : volHighIcon;
+
+            // Show AirPlay button if supported
+            if (window.WebKitPlaybackTargetAvailabilityEvent && airplayBtn.dataset.available === 'true') {
+                airplayBtn.classList.remove('hidden');
+            }
+        };
+
+        // Multi-View Layout Toggle
+        layoutBtn.addEventListener('click', () => {
+            const grid = document.getElementById('video-grid');
+            if (currentLayout === 1) {
+                currentLayout = 2;
+                grid.className = 'absolute inset-0 grid grid-cols-2 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300';
+                document.getElementById('slot-2').classList.remove('hidden');
+                window.showToast('Split Screen Mode: 2 Players');
+            } else if (currentLayout === 2) {
+                currentLayout = 4;
+                grid.className = 'absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[2px] bg-slate-900 transition-all duration-300';
+                document.getElementById('slot-3').classList.remove('hidden');
+                document.getElementById('slot-4').classList.remove('hidden');
+                window.showToast('Grid Mode: 4 Players');
+            } else {
+                currentLayout = 1;
+                grid.className = 'absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300';
+                document.getElementById('slot-2').classList.add('hidden');
+                document.getElementById('slot-3').classList.add('hidden');
+                document.getElementById('slot-4').classList.add('hidden');
+                if (activeSlot > 1) setActiveSlot(1);
+                window.showToast('Single Player Mode');
+            }
+        });
 
         // --- IDLE TIMER LOGIC ---
         let idleTimer;
         let lastMouseX = 0;
         let lastMouseY = 0;
+        const videoContainer = document.getElementById('video-container');
 
         function showControls() {
             videoContainer.style.cursor = 'default';
@@ -712,14 +885,13 @@ new class extends Component {
             customControls.style.pointerEvents = 'auto';
 
             clearTimeout(idleTimer);
-
-            if (!video.paused) {
+            if (!getActiveVideo().paused) {
                 idleTimer = setTimeout(hideControls, 2500);
             }
         }
 
         function hideControls() {
-            if (!video.paused) {
+            if (!getActiveVideo().paused) {
                 videoContainer.style.cursor = 'none';
                 customControls.style.opacity = '0';
                 customControls.style.pointerEvents = 'none';
@@ -732,74 +904,107 @@ new class extends Component {
             lastMouseY = e.clientY;
             showControls();
         });
-
         videoContainer.addEventListener('mousedown', showControls);
         videoContainer.addEventListener('touchstart', showControls);
         videoContainer.addEventListener('mouseleave', hideControls);
-
         customControls.addEventListener('mouseenter', () => clearTimeout(idleTimer));
         customControls.addEventListener('mouseleave', showControls);
 
-        video.addEventListener('play', showControls);
-        video.addEventListener('pause', showControls);
+        // --- BIND EVENTS FOR ALL 4 VIDEOS ---
+        for (let i = 1; i <= 4; i++) {
+            const v = document.getElementById('player-' + i);
+            const spinner = document.getElementById('spinner-' + i);
 
-        // --- Basic UI Logic ---
-        let statusTimeout;
-        function updateStatus(message) {
-            if (status) {
-                status.textContent = message;
-                status.style.opacity = '1';
-                clearTimeout(statusTimeout);
-                statusTimeout = setTimeout(() => {
-                    status.style.opacity = '0';
-                }, 3000);
+            v.addEventListener('waiting', () => { spinner.style.opacity = '1'; });
+            v.addEventListener('playing', () => { spinner.style.opacity = '0'; });
+            v.addEventListener('canplay', () => { spinner.style.opacity = '0'; });
+
+            v.addEventListener('play', () => {
+                if (activeSlot === i) playPauseBtn.innerHTML = pauseIcon;
+                showControls();
+            });
+            v.addEventListener('pause', () => {
+                if (activeSlot === i) playPauseBtn.innerHTML = playIcon;
+                showControls();
+            });
+
+            v.addEventListener('volumechange', () => {
+                if (activeSlot === i) {
+                    if (v.muted || v.volume === 0) {
+                        muteBtn.innerHTML = volMuteIcon;
+                        volumeSlider.value = 0;
+                    } else {
+                        muteBtn.innerHTML = volHighIcon;
+                        volumeSlider.value = v.volume;
+                    }
+                }
+            });
+
+            v.addEventListener('dblclick', async () => {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+                } else {
+                    if (videoContainer.requestFullscreen) await videoContainer.requestFullscreen();
+                    else if (videoContainer.webkitRequestFullscreen) await videoContainer.webkitRequestFullscreen();
+                }
+            });
+
+            v.addEventListener('click', (e) => {
+                if (e.target !== customControls && !customControls.contains(e.target)) {
+                    // Click on a specific video slot makes it active and toggles play/pause
+                    setActiveSlot(i);
+                    if (v.paused) v.play(); else v.pause();
+                }
+            });
+
+            // AirPlay Support
+            if (window.WebKitPlaybackTargetAvailabilityEvent) {
+                v.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
+                    if (event.availability === 'available') {
+                        airplayBtn.dataset.available = 'true';
+                        if (activeSlot === i) airplayBtn.classList.remove('hidden');
+                    }
+                });
             }
         }
 
+        // --- BOTTOM CONTROLS ACTIONS ---
         playPauseBtn.addEventListener('click', () => {
-            if (video.paused) video.play();
-            else video.pause();
+            const v = getActiveVideo();
+            if (v.paused) v.play(); else v.pause();
         });
 
-        video.addEventListener('play', () => playPauseBtn.innerHTML = pauseIcon);
-        video.addEventListener('pause', () => playPauseBtn.innerHTML = playIcon);
-
         topStopBtn.addEventListener('click', () => {
-            video.pause();
-            updateStatus('Stopped');
+            const v = getActiveVideo();
+            v.pause();
+            updateStatus(activeSlot, 'Stopped');
             showControls();
         });
 
         muteBtn.addEventListener('click', () => {
-            video.muted = !video.muted;
-            if(!video.muted && video.volume === 0) video.volume = 0.5;
-            volumeSlider.value = video.muted ? 0 : video.volume;
+            const v = getActiveVideo();
+            v.muted = !v.muted;
+            if(!v.muted && v.volume === 0) v.volume = 0.5;
+            volumeSlider.value = v.muted ? 0 : v.volume;
         });
 
         volumeSlider.addEventListener('input', (e) => {
-            video.volume = e.target.value;
-            video.muted = e.target.value === '0';
-        });
-
-        video.addEventListener('volumechange', () => {
-            if (video.muted || video.volume === 0) {
-                muteBtn.innerHTML = volMuteIcon;
-                volumeSlider.value = 0;
-            } else {
-                muteBtn.innerHTML = volHighIcon;
-                volumeSlider.value = video.volume;
-            }
+            const v = getActiveVideo();
+            v.volume = e.target.value;
+            v.muted = e.target.value === '0';
         });
 
         if (!document.pictureInPictureEnabled) pipBtn.style.display = 'none';
         pipBtn.addEventListener('click', async () => {
+            const v = getActiveVideo();
             try {
                 if (document.pictureInPictureElement) await document.exitPictureInPicture();
-                else await video.requestPictureInPicture();
+                else await v.requestPictureInPicture();
             } catch (err) { console.error(err); }
         });
 
-        const toggleFullscreen = async () => {
+        const toggleFs = async () => {
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 if (document.exitFullscreen) await document.exitFullscreen();
                 else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
@@ -808,17 +1013,54 @@ new class extends Component {
                 else if (videoContainer.webkitRequestFullscreen) await videoContainer.webkitRequestFullscreen();
             }
         };
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        topFullscreenBtn.addEventListener('click', toggleFullscreen);
+        fullscreenBtn.addEventListener('click', toggleFs);
+        topFullscreenBtn.addEventListener('click', toggleFs);
 
-        video.addEventListener('click', (e) => {
-            if(e.target !== customControls && !customControls.contains(e.target)) {
-                if (video.paused) video.play();
-                else video.pause();
+        airplayBtn.addEventListener('click', () => {
+            const v = getActiveVideo();
+            if(v.webkitShowPlaybackTargetPicker) v.webkitShowPlaybackTargetPicker();
+        });
+
+        // --- KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+            const v = getActiveVideo();
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    if (v.paused) v.play(); else v.pause();
+                    showControls();
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    muteBtn.click();
+                    showControls();
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    fullscreenBtn.click();
+                    showControls();
+                    break;
+                case 't':
+                    e.preventDefault();
+                    const theaterBtn = document.getElementById('theater-btn');
+                    if(theaterBtn) theaterBtn.click();
+                    break;
             }
         });
 
-        // --- Player Core Logic ---
+        // --- PLAYER CORE LOGIC ---
+        function updateStatus(slotId, message) {
+            const statusEl = document.getElementById('status-' + slotId);
+            if (statusEl) {
+                statusEl.textContent = message;
+                statusEl.style.opacity = '1';
+                setTimeout(() => { statusEl.style.opacity = '0'; }, 3000);
+            }
+        }
+
         function isHlsStream(url) { return /\.m3u8?(\?|#|$)/i.test(url) || /m3u8/i.test(url); }
         function isDashStream(url) { return /\.mpd(\?|#|$)/i.test(url); }
 
@@ -840,92 +1082,129 @@ new class extends Component {
             });
         }
 
-        function resetPlayers() {
-            if (hlsPlayer) { hlsPlayer.destroy(); hlsPlayer = null; }
-            if (shakaPlayer) { shakaPlayer.unload().catch(() => {}); }
-            if (video) { video.removeAttribute('src'); video.load(); }
+        function resetPlayerForSlot(slotId) {
+            if (hlsPlayers[slotId]) { hlsPlayers[slotId].destroy(); hlsPlayers[slotId] = null; }
+            if (shakaPlayers[slotId]) { shakaPlayers[slotId].unload().catch(() => {}); }
+            const v = document.getElementById('player-' + slotId);
+            if (v) { v.removeAttribute('src'); v.load(); }
+            document.getElementById('spinner-' + slotId).style.opacity = '0';
         }
 
-        async function playNative(url, name) {
-            resetPlayers();
-            video.src = url;
-            updateStatus(`Loading ${name}...`);
-            await video.play().catch(() => updateStatus('Tap play to start'));
+        async function playNative(url, name, slotId) {
+            resetPlayerForSlot(slotId);
+            const v = document.getElementById('player-' + slotId);
+            v.src = url;
+            updateStatus(slotId, `Loading ${name}...`);
+            document.getElementById('spinner-' + slotId).style.opacity = '1';
+            await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
         }
 
-        async function playWithHlsJs(url, name) {
+        async function playWithHlsJs(url, name, slotId) {
             hlsLoader ??= loadScript('https://cdn.jsdelivr.net/npm/hls.js@1.6.14/dist/hls.min.js', 'Hls');
             await hlsLoader;
 
             if (!window.Hls || !Hls.isSupported()) {
-                await playNative(url, name);
+                await playNative(url, name, slotId);
                 return;
             }
 
-            resetPlayers();
-            hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
+            resetPlayerForSlot(slotId);
+            const v = document.getElementById('player-' + slotId);
+            const spinner = document.getElementById('spinner-' + slotId);
 
-            hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+            const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            hlsPlayers[slotId] = hls;
+
+            hls.on(Hls.Events.ERROR, (event, data) => {
                 if (!data.fatal) return;
+
+                // AUTO-RECONNECT LOGIC
                 if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                    updateStatus(`Network error; retrying...`);
-                    hlsPlayer.startLoad();
+                    if (retryCounts[slotId] < MAX_RETRIES) {
+                        retryCounts[slotId]++;
+                        updateStatus(slotId, `Reconnecting (${retryCounts[slotId]}/${MAX_RETRIES})...`);
+                        spinner.style.opacity = '1';
+                        setTimeout(() => hls.startLoad(), 3000);
+                    } else {
+                        updateStatus(slotId, `Stream offline.`);
+                        spinner.style.opacity = '0';
+                        hls.destroy();
+                        hlsPlayers[slotId] = null;
+                    }
                     return;
                 }
+
                 if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-                    updateStatus(`Media error; recovering...`);
-                    hlsPlayer.recoverMediaError();
+                    updateStatus(slotId, `Recovering media...`);
+                    hls.recoverMediaError();
                     return;
                 }
-                updateStatus(`Unable to load in browser`);
-                hlsPlayer.destroy();
-                hlsPlayer = null;
-                playNative(url, name).catch(() => updateStatus(`Error: ${data.details ?? 'unknown'}`));
+
+                updateStatus(slotId, `Load failed`);
+                hls.destroy();
+                hlsPlayers[slotId] = null;
+                playNative(url, name, slotId).catch(() => updateStatus(slotId, `Error: ${data.details ?? 'unknown'}`));
             });
 
-            hlsPlayer.on(Hls.Events.MANIFEST_PARSED, async () => {
-                updateStatus(`Playing: ${name}`);
-                await video.play().catch(() => updateStatus('Tap play to start'));
+            hls.on(Hls.Events.MANIFEST_PARSED, async () => {
+                retryCounts[slotId] = 0; // Reset retries
+                updateStatus(slotId, `Playing: ${name}`);
+                await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
             });
 
-            updateStatus(`Loading ${name}...`);
-            hlsPlayer.loadSource(url);
-            hlsPlayer.attachMedia(video);
+            updateStatus(slotId, `Loading ${name}...`);
+            spinner.style.opacity = '1';
+            hls.loadSource(url);
+            hls.attachMedia(v);
         }
 
-        async function playWithShaka(url, name) {
+        async function playWithShaka(url, name, slotId) {
             shakaLoader ??= loadScript('https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.9/shaka-player.compiled.min.js', 'shaka');
             await shakaLoader;
 
-            resetPlayers();
+            resetPlayerForSlot(slotId);
             shaka.polyfill.installAll();
-            shakaPlayer = new shaka.Player(video);
-            shakaPlayer.addEventListener('error', (event) => updateStatus(`Playback error: ${event.detail.code}`));
 
-            updateStatus(`Loading ${name}...`);
-            await shakaPlayer.load(url);
-            updateStatus(`Playing: ${name}`);
-            await video.play().catch(() => updateStatus('Tap play to start'));
+            const v = document.getElementById('player-' + slotId);
+            const spinner = document.getElementById('spinner-' + slotId);
+
+            const shakaP = new shaka.Player(v);
+            shakaPlayers[slotId] = shakaP;
+
+            shakaP.addEventListener('error', (event) => {
+                updateStatus(slotId, `Error: ${event.detail.code}`);
+                spinner.style.opacity = '0';
+            });
+
+            updateStatus(slotId, `Loading ${name}...`);
+            spinner.style.opacity = '1';
+            await shakaP.load(url);
+            updateStatus(slotId, `Playing: ${name}`);
+            await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
         }
 
         async function loadStream(url, name = 'Live stream') {
-            if (!video || !url) return;
-            volumeSlider.value = video.muted ? 0 : video.volume;
+            const targetSlot = activeSlot;
+            const v = document.getElementById('player-' + targetSlot);
+            if (!v || !url) return;
+
+            v.muted = targetSlot === activeSlot ? false : true;
 
             try {
-                if (isHlsStream(url)) { await playWithHlsJs(url, name); return; }
-                if (isDashStream(url)) { await playWithShaka(url, name); return; }
-                await playNative(url, name);
+                if (isHlsStream(url)) { await playWithHlsJs(url, name, targetSlot); return; }
+                if (isDashStream(url)) { await playWithShaka(url, name, targetSlot); return; }
+                await playNative(url, name, targetSlot);
             } catch (error) {
                 if (isHlsStream(url)) {
-                    updateStatus(`Native fallback...`);
-                    await playNative(url, name).catch(() => updateStatus(`Error: ${error.code ?? error.message ?? 'unknown'}`));
+                    updateStatus(targetSlot, `Fallback native...`);
+                    await playNative(url, name, targetSlot).catch(() => updateStatus(targetSlot, `Error: ${error.code ?? error.message ?? 'unknown'}`));
                     return;
                 }
-                updateStatus(`Error: ${error.code ?? error.message ?? 'unknown'}`);
+                updateStatus(targetSlot, `Error: ${error.code ?? error.message ?? 'unknown'}`);
             }
         }
 
+        // Initial Load on Screen 1
         loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
         $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
     </script>
