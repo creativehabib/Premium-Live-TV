@@ -336,7 +336,37 @@ new class extends Component {
             opacity: 0.9;
             box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3);
         }
+
+        /* CUSTOM CONTEXT MENU & MODALS */
+        .glass-menu {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        #custom-context-menu {
+            transform-origin: top left;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+        }
     </style>
+
+    <div id="shortcuts-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="glass-menu w-full max-w-md rounded-2xl p-6 text-white transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold">Keyboard Shortcuts</h3>
+                <button onclick="toggleShortcutsModal()" class="rounded-full p-1 hover:bg-slate-800 transition">
+                    <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="mt-4 space-y-3">
+                <div class="flex justify-between"><span class="text-slate-400">Play / Pause</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">Space</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-400">Mute / Unmute</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">M</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-400">Fullscreen</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">F</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-400">Theater Mode</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">T</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-400">Close Menus</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">Esc</kbd></div>
+            </div>
+        </div>
+    </div>
 
     <div id="content-container" class="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
 
@@ -430,6 +460,32 @@ new class extends Component {
 
             <div wire:ignore id="video-container" class="relative aspect-video bg-black overflow-hidden transition-all group">
 
+                <div id="custom-context-menu" class="absolute hidden glass-menu rounded-xl py-2 w-48 z-[100] text-sm text-slate-200">
+                    <button onclick="copyToClipboard('{{ $this->selectedChannel()['url'] }}'); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
+                        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
+                    </button>
+                    <button onclick="toggleLoop(); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
+                        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop Video <span id="loop-status" class="ml-auto text-xs text-slate-400">Off</span>
+                    </button>
+                    <div class="h-px bg-slate-700 my-1"></div>
+                    <button onclick="toggleStats(); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
+                        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Stats for nerds
+                    </button>
+                </div>
+
+                <div id="stats-box" class="absolute top-4 left-4 glass-menu rounded-lg p-3 text-[11px] font-mono text-slate-200 hidden z-50">
+                    <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-1">
+                        <span class="font-bold text-white">Video Stats</span>
+                        <button onclick="toggleStats()" class="hover:text-white">✕</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <span class="text-slate-400">Resolution:</span> <span id="stat-res">-</span>
+                        <span class="text-slate-400">Bandwidth:</span> <span id="stat-bw">-</span>
+                        <span class="text-slate-400">Dropped Frames:</span> <span id="stat-frames">-</span>
+                        <span class="text-slate-400">Protocol:</span> <span id="stat-proto">{{ $this->selectedChannel()['protocol'] }}</span>
+                    </div>
+                </div>
+
                 <div id="video-grid" class="absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300">
 
                     <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)">
@@ -487,7 +543,22 @@ new class extends Component {
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 relative">
+
+                        <div class="relative group/settings">
+                            <button class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Settings">
+                                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                            <div class="absolute bottom-12 right-0 hidden group-hover/settings:block w-36 glass-menu rounded-xl py-2 shadow-xl border border-white/10 z-50">
+                                <div class="px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quality</div>
+                                <div id="quality-list" class="flex flex-col text-sm text-white">
+                                    <button onclick="setQuality(-1)" class="text-left px-4 py-1.5 hover:bg-white/20 transition flex items-center gap-2 text-indigo-300">
+                                        <span class="size-1.5 rounded-full bg-indigo-500"></span> Auto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <button id="layout-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Multi-View / Split Screen">
                             <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
                         </button>
@@ -515,28 +586,21 @@ new class extends Component {
             </div>
         </section>
 
-        @php
-            $visibleChannels = $this->filteredChannels();
-            $liveCount = collect($visibleChannels)->whereIn('status', ['LIVE', 'READY'])->count();
-            $blockedCount = collect($visibleChannels)->where('status', 'BLOCKED')->count();
-            $deadCount = collect($visibleChannels)->where('status', 'DEAD')->count();
-        @endphp
-
         <section class="dim-in-theater rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 transition-shadow hover:shadow-indigo-200">
 
             <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50">
                     <button class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 cursor-pointer text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 tracking-wide">
-                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 transition-colors">{{ count($visibleChannels) }}</span>
+                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 transition-colors">{{ count($this->filteredChannels()) }}</span>
                     </button>
                     <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-emerald-500"></span> চলবে <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $liveCount }}</span>
+                        <span class="size-2 rounded-full bg-emerald-500"></span> চলবে <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ count($this->filteredChannels()) }}</span>
                     </button>
                     <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-orange-500"></span> ব্লকড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $blockedCount }}</span>
+                        <span class="size-2 rounded-full bg-orange-500"></span> ব্লকড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
                     </button>
                     <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ $deadCount }}</span>
+                        <span class="size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
                     </button>
                 </div>
 
@@ -577,7 +641,7 @@ new class extends Component {
                     <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer transition-transform active:scale-90">
                     সব নির্বাচন করুন
                 </label>
-                <span class="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">{{ count($visibleChannels) }}টি</span>
+                <span class="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">{{ count($this->filteredChannels()) }}টি</span>
             </div>
 
             <div wire:loading wire:target="loadGroup" class="flex w-full flex-col gap-2 p-3">
@@ -604,7 +668,7 @@ new class extends Component {
             </div>
 
             <div wire:loading.remove wire:target="loadGroup" class="flex flex-col gap-2 p-3 stagger-fade-in max-h-[800px] overflow-y-auto">
-                @foreach ($visibleChannels as $channel)
+                @foreach ($this->filteredChannels() as $channel)
                     @php
                         $isDead = $channel['status'] === 'DEAD';
                         $isBlocked = $channel['status'] === 'BLOCKED';
@@ -689,7 +753,7 @@ new class extends Component {
                     </div>
                 @endforeach
 
-                @if(count($visibleChannels) === 0)
+                @if(count($this->filteredChannels()) === 0)
                     <div class="py-10 text-center text-slate-500 dark:text-slate-400">
                         <svg class="mx-auto size-10 opacity-30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <p class="text-sm font-semibold tracking-wide">কোনো চ্যানেল পাওয়া যায়নি</p>
@@ -698,10 +762,12 @@ new class extends Component {
             </div>
         </section>
 
-        <footer class="dim-in-theater pb-8 text-center text-xs font-bold text-slate-500">
+        <footer class="dim-in-theater pb-8 flex flex-col items-center justify-center text-center text-xs font-bold text-slate-500 mt-6">
             <p class="uppercase tracking-[0.3em] text-slate-400">Developed by</p>
-            <p class="mt-1 text-slate-700 dark:text-slate-200 transition-colors hover:text-indigo-600 cursor-pointer tracking-wide">Monirujjaman Monjil</p>
-            <div class="mx-auto mt-3 grid size-14 place-items-center rounded-full bg-gradient-to-br from-violet-600 to-sky-500 text-lg text-white shadow-lg shadow-violet-300 transition-transform duration-300 hover:scale-110 cursor-pointer">👨‍💻</div>
+            <h3 class="mt-1 text-slate-700 dark:text-slate-200 transition-colors hover:text-indigo-600 cursor-pointer tracking-wide">Habibur Rahaman</h3>
+            <a class="mt-3 block transition-transform duration-300 hover:scale-110" href="https://www.facebook.com/creativehabib" target="_blank" rel="noopener noreferrer" aria-label="Habibur Rahaman — Facebook">
+                <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">
+            </a>
         </footer>
     </div>
 
@@ -714,7 +780,7 @@ new class extends Component {
 
             const toast = document.createElement('div');
             const bgClass = type === 'success' ? 'bg-emerald-500/95' : 'bg-rose-500/95';
-            toast.className = `flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass} backdrop-blur-md`;
+            toast.className = `flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass} backdrop-blur-md z-[200]`;
 
             toast.innerHTML = type === 'success'
                 ? `<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> <span>${message}</span>`
@@ -760,8 +826,62 @@ new class extends Component {
             }
         };
 
-        // Theater Mode Toggle Logic
+        // UI toggles
+        window.toggleShortcutsModal = function() {
+            const modal = document.getElementById('shortcuts-modal');
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('.glass-menu').classList.remove('scale-95'); }, 10);
+            } else {
+                modal.classList.add('opacity-0'); modal.querySelector('.glass-menu').classList.add('scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        };
+
+        window.hideContextMenu = function() {
+            const menu = document.getElementById('custom-context-menu');
+            menu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => menu.classList.add('hidden'), 200);
+        };
+
+        window.toggleStats = function() {
+            const box = document.getElementById('stats-box');
+            box.classList.toggle('hidden');
+        };
+
+        window.toggleLoop = function() {
+            const v = document.getElementById('player-' + activeSlot);
+            if(v) {
+                v.loop = !v.loop;
+                document.getElementById('loop-status').textContent = v.loop ? 'On' : 'Off';
+                window.showToast(v.loop ? 'Video Looping Enabled' : 'Video Looping Disabled');
+            }
+        };
+
+        // Context Menu Logic
         document.addEventListener('DOMContentLoaded', () => {
+            const videoContainer = document.getElementById('video-container');
+            const contextMenu = document.getElementById('custom-context-menu');
+
+            videoContainer.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                contextMenu.classList.remove('hidden');
+
+                // Keep menu within bounds
+                let x = e.offsetX; let y = e.offsetY;
+                if(x + contextMenu.offsetWidth > videoContainer.offsetWidth) x = videoContainer.offsetWidth - contextMenu.offsetWidth;
+                if(y + contextMenu.offsetHeight > videoContainer.offsetHeight) y = videoContainer.offsetHeight - contextMenu.offsetHeight;
+
+                contextMenu.style.left = `${x}px`; contextMenu.style.top = `${y}px`;
+
+                // Animate in
+                setTimeout(() => { contextMenu.classList.remove('opacity-0', 'scale-95'); }, 10);
+            });
+
+            document.addEventListener('click', (e) => {
+                if(!contextMenu.contains(e.target)) hideContextMenu();
+            });
+
             const theaterBtn = document.getElementById('theater-btn');
             if(theaterBtn) {
                 theaterBtn.addEventListener('click', () => {
@@ -798,6 +918,7 @@ new class extends Component {
         const airplayBtn = document.getElementById('airplay-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const layoutBtn = document.getElementById('layout-btn');
+        const qualityList = document.getElementById('quality-list');
 
         // Top bar buttons
         const topFullscreenBtn = document.getElementById('top-fullscreen-btn');
@@ -814,7 +935,6 @@ new class extends Component {
 
         // --- MULTI-VIEW UI LOGIC ---
         window.setActiveSlot = function(slot) {
-            // Un-highlight all slots and mute them
             for(let i=1; i<=4; i++) {
                 const slotEl = document.getElementById('slot-'+i);
                 slotEl.classList.remove('slot-active');
@@ -826,29 +946,25 @@ new class extends Component {
                 }
             }
 
-            // Highlight new active slot
             activeSlot = slot;
             const newSlotEl = document.getElementById('slot-'+slot);
             newSlotEl.classList.remove('slot-inactive');
             newSlotEl.classList.add('slot-active');
 
-            // Restore volume settings for the active video
             const activeVideo = getActiveVideo();
-            // Assuming global default if not set, else it remembers its last state
             if(activeVideo.volume === 0 && !activeVideo.muted) activeVideo.volume = 0.5;
 
-            // Update Bottom Control Bar to match the newly active video
             playPauseBtn.innerHTML = activeVideo.paused ? playIcon : pauseIcon;
             volumeSlider.value = activeVideo.muted ? 0 : activeVideo.volume;
             muteBtn.innerHTML = activeVideo.muted || activeVideo.volume === 0 ? volMuteIcon : volHighIcon;
 
-            // Show AirPlay button if supported
             if (window.WebKitPlaybackTargetAvailabilityEvent && airplayBtn.dataset.available === 'true') {
                 airplayBtn.classList.remove('hidden');
             }
+
+            updateQualityMenu(activeSlot);
         };
 
-        // Multi-View Layout Toggle
         layoutBtn.addEventListener('click', () => {
             const grid = document.getElementById('video-grid');
             if (currentLayout === 1) {
@@ -895,6 +1011,7 @@ new class extends Component {
                 videoContainer.style.cursor = 'none';
                 customControls.style.opacity = '0';
                 customControls.style.pointerEvents = 'none';
+                window.hideContextMenu();
             }
         }
 
@@ -952,13 +1069,11 @@ new class extends Component {
 
             v.addEventListener('click', (e) => {
                 if (e.target !== customControls && !customControls.contains(e.target)) {
-                    // Click on a specific video slot makes it active and toggles play/pause
                     setActiveSlot(i);
                     if (v.paused) v.play(); else v.pause();
                 }
             });
 
-            // AirPlay Support
             if (window.WebKitPlaybackTargetAvailabilityEvent) {
                 v.addEventListener('webkitplaybacktargetavailabilitychanged', function(event) {
                     if (event.availability === 'available') {
@@ -967,6 +1082,14 @@ new class extends Component {
                     }
                 });
             }
+
+            // Stats updates
+            setInterval(() => {
+                if(activeSlot === i && !document.getElementById('stats-box').classList.contains('hidden')) {
+                    document.getElementById('stat-res').textContent = `${v.videoWidth}x${v.videoHeight}`;
+                    if(v.webkitDroppedFrameCount !== undefined) document.getElementById('stat-frames').textContent = v.webkitDroppedFrameCount;
+                }
+            }, 1000);
         }
 
         // --- BOTTOM CONTROLS ACTIONS ---
@@ -1026,6 +1149,17 @@ new class extends Component {
             if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
 
             const v = getActiveVideo();
+            switch(e.key) {
+                case '?':
+                    e.preventDefault();
+                    window.toggleShortcutsModal();
+                    break;
+                case 'Escape':
+                    window.hideContextMenu();
+                    document.getElementById('stats-box').classList.add('hidden');
+                    document.getElementById('shortcuts-modal').classList.add('hidden');
+                    break;
+            }
             switch(e.key.toLowerCase()) {
                 case ' ':
                 case 'k':
@@ -1040,7 +1174,7 @@ new class extends Component {
                     break;
                 case 'f':
                     e.preventDefault();
-                    fullscreenBtn.click();
+                    toggleFs();
                     showControls();
                     break;
                 case 't':
@@ -1058,6 +1192,33 @@ new class extends Component {
                 statusEl.textContent = message;
                 statusEl.style.opacity = '1';
                 setTimeout(() => { statusEl.style.opacity = '0'; }, 3000);
+            }
+        }
+
+        // Resolution Switcher Logic
+        window.setQuality = function(levelIndex) {
+            const hls = hlsPlayers[activeSlot];
+            if(hls) {
+                hls.currentLevel = levelIndex;
+                updateQualityMenu(activeSlot);
+                window.showToast(levelIndex === -1 ? 'Auto Quality Selected' : 'Quality Changed');
+            }
+        };
+
+        function updateQualityMenu(slotId) {
+            const hls = hlsPlayers[slotId];
+            if(hls && hls.levels && hls.levels.length > 0) {
+                let html = `<button onclick="setQuality(-1)" class="text-left px-4 py-1.5 hover:bg-white/20 transition flex items-center gap-2 text-indigo-300">
+                                ${hls.currentLevel === -1 ? '<span class="size-1.5 rounded-full bg-indigo-500"></span>' : '<span class="size-1.5"></span>'} Auto
+                            </button>`;
+                hls.levels.forEach((level, index) => {
+                    html += `<button onclick="setQuality(${index})" class="text-left px-4 py-1.5 hover:bg-white/20 transition flex items-center gap-2">
+                                ${hls.currentLevel === index ? '<span class="size-1.5 rounded-full bg-white"></span>' : '<span class="size-1.5"></span>'} ${level.height}p
+                            </button>`;
+                });
+                qualityList.innerHTML = html;
+            } else {
+                qualityList.innerHTML = '<div class="px-4 py-1.5 text-slate-500 italic">Not available</div>';
             }
         }
 
@@ -1088,6 +1249,7 @@ new class extends Component {
             const v = document.getElementById('player-' + slotId);
             if (v) { v.removeAttribute('src'); v.load(); }
             document.getElementById('spinner-' + slotId).style.opacity = '0';
+            updateQualityMenu(slotId);
         }
 
         async function playNative(url, name, slotId) {
@@ -1149,7 +1311,16 @@ new class extends Component {
             hls.on(Hls.Events.MANIFEST_PARSED, async () => {
                 retryCounts[slotId] = 0; // Reset retries
                 updateStatus(slotId, `Playing: ${name}`);
+                updateQualityMenu(slotId);
                 await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
+            });
+
+            // Stats for nerds update bandwidth
+            hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
+                if(activeSlot === slotId) {
+                    const bw = Math.round(data.frag.stats.bwEstimate / 1000); // kbps
+                    if(bw) document.getElementById('stat-bw').textContent = bw + ' Kbps';
+                }
             });
 
             updateStatus(slotId, `Loading ${name}...`);
@@ -1188,7 +1359,7 @@ new class extends Component {
             const v = document.getElementById('player-' + targetSlot);
             if (!v || !url) return;
 
-            v.muted = targetSlot === activeSlot ? false : true;
+            v.muted = targetSlot !== activeSlot;
 
             try {
                 if (isHlsStream(url)) { await playWithHlsJs(url, name, targetSlot); return; }
@@ -1204,7 +1375,6 @@ new class extends Component {
             }
         }
 
-        // Initial Load on Screen 1
         loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
         $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
     </script>
