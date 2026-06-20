@@ -69,7 +69,7 @@ new class extends Component {
         $this->search = '';
         $this->loadMessage = 'Loading '.$group['name'].' channels...';
 
-        // Cache System: ডাটা ২ ঘণ্টার জন্য সেভ থাকবে
+        // Cache System
         $cacheKey = 'iptv_group_data_' . $groupKey;
         $playlistCacheKey = 'iptv_playlist_raw_' . $groupKey;
 
@@ -79,17 +79,11 @@ new class extends Component {
                 if ($response->successful()) {
                     $body = $response->body();
 
-                    // ==========================================
-                    // FIX: Malformed UTF-8 Characters Error
-                    // ==========================================
-                    // ১. ফাইলের অরিজিনাল এনকোডিং ডিটেক্ট করে UTF-8 এ কনভার্ট করা
+                    // UTF-8 Fix
                     $encoding = mb_detect_encoding($body, 'UTF-8, ISO-8859-1, WINDOWS-1252', true) ?: 'UTF-8';
                     $body = mb_convert_encoding($body, 'UTF-8', $encoding);
-
-                    // ২. অতিরিক্ত ইনভ্যালিড ক্যারেক্টার ইগনোর করে ফিল্টার করা
                     $body = iconv('UTF-8', 'UTF-8//IGNORE', $body) ?: $body;
 
-                    // ৩. প্লেলিস্ট বক্সে দেখানোর জন্য ডাটা ক্যাশ করে রাখা
                     cache()->put($playlistCacheKey, $body, now()->addHours(2));
 
                     return $this->parsePlaylist($body, $group['name']);
@@ -100,7 +94,6 @@ new class extends Component {
             return [];
         });
 
-        // প্লেলিস্ট বক্সে ডাটা শো করানো
         $this->playlist = cache()->get($playlistCacheKey, '');
 
         if (empty($this->channels)) {
@@ -144,7 +137,6 @@ new class extends Component {
     }
 
     // --- LOGIC: Verify, Delete, and Clean Channels ---
-
     public function verifyChannel(int $id): void
     {
         $index = array_search($id, array_column($this->channels, 'id'));
@@ -236,7 +228,6 @@ new class extends Component {
             }
 
             $name = $pendingName ?? basename(parse_url($line, PHP_URL_PATH) ?: 'Live Channel');
-
             $status = 'LIVE';
             $isHttp = false;
             $proxyNeeded = false;
@@ -297,10 +288,9 @@ new class extends Component {
         /* IMPORT PREMIUM FONTS */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 
-        /* TYPOGRAPHY REFINEMENT */
         #app-wrapper { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-        /* CUSTOM SCROLLBAR */
+        /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
@@ -309,12 +299,12 @@ new class extends Component {
         .dark ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
         * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.4) transparent; }
 
-        /* Custom Volume Slider CSS */
+        /* VOL SLIDER */
         input[type=range].custom-vol { -webkit-appearance: none; background: rgba(255, 255, 255, 0.4); height: 4px; border-radius: 2px; outline: none; }
         input[type=range].custom-vol::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ffffff; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.1s; }
         input[type=range].custom-vol::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-        /* Micro-interaction: Staggered Fade In Up & Progress Bar */
+        /* ANIMATIONS */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .stagger-fade-in > div { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; }
         .stagger-fade-in > div:nth-child(1) { animation-delay: 0.05s; } .stagger-fade-in > div:nth-child(2) { animation-delay: 0.1s; }
@@ -322,14 +312,10 @@ new class extends Component {
         .stagger-fade-in > div:nth-child(n+5) { animation-delay: 0.25s; }
 
         @keyframes simulated-progress {
-            0% { width: 0%; }
-            15% { width: 25%; }
-            45% { width: 60%; }
-            75% { width: 85%; }
-            100% { width: 95%; }
+            0% { width: 0%; } 15% { width: 25%; } 45% { width: 60%; } 75% { width: 85%; } 100% { width: 95%; }
         }
 
-        /* THEATER MODE STYLES */
+        /* THEATER MODE */
         body.theater-mode-active #app-wrapper { background: #020617 !important; }
         body.theater-mode-active #content-container { max-width: 1500px !important; }
         body.theater-mode-active .dim-in-theater { opacity: 0.15; transition: opacity 0.4s ease-in-out; filter: grayscale(0.5); }
@@ -337,57 +323,54 @@ new class extends Component {
         body.theater-mode-active .player-section-wrapper { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-color: #1e293b; }
         #content-container { transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* MULTI-VIEW / VIDEO GRID STYLES */
+        /* MULTI-VIEW */
         .video-slot { position: relative; width: 100%; height: 100%; background: #000; transition: all 0.3s ease; cursor: pointer; }
         .video-slot video { width: 100%; height: 100%; object-fit: contain; }
         .slot-active { z-index: 10; box-shadow: inset 0 0 0 2px #6366f1; opacity: 1 !important; }
         .slot-inactive { z-index: 0; opacity: 0.6; }
         .slot-inactive:hover { opacity: 0.9; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3); }
 
-        /* DRAG AND DROP STYLES */
+        /* DRAG AND DROP */
         .drag-over-active { box-shadow: inset 0 0 0 4px #f43f5e !important; filter: brightness(1.2); }
 
-        /* FLOATING MINI-PLAYER STYLES */
+        /* FLOATING MINI-PLAYER */
         .floating-player {
-            position: fixed !important;
-            bottom: 25px;
-            right: 25px;
-            width: 380px !important;
-            height: 214px !important;
-            z-index: 99999;
-            border-radius: 12px;
+            position: fixed !important; bottom: 15px; right: 15px; width: 90vw !important; max-width: 380px !important;
+            height: auto !important; aspect-ratio: 16 / 9; z-index: 99999; border-radius: 12px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            background: #000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: #000;
         }
+        @media (min-width: 640px) { .floating-player { bottom: 25px; right: 25px; width: 380px !important; } }
         .floating-player:hover { transform: scale(1.03) translateY(-5px); box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(99, 102, 241, 0.5); }
         .close-floating { display: none; }
         .floating-player .close-floating { display: flex; }
         .floating-player #custom-controls { padding: 8px !important; }
 
-        /* CUSTOM CONTEXT MENU & MODALS */
+        /* MENUS */
         .glass-menu { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
         #custom-context-menu { transform-origin: top left; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; }
 
-        /* FULLSCREEN HOVER SIDEBAR (LEFT SIDE) */
-        .fs-sidebar-wrapper { position: absolute; top: 0; left: 0; width: 320px; height: 100%; z-index: 99999; pointer-events: none; display: none; }
+        /* FULLSCREEN SIDEBAR */
+        .fs-sidebar-wrapper { position: absolute; top: 0; left: 0; width: 300px; height: 100%; z-index: 99999; pointer-events: none; display: none; }
+        @media (min-width: 640px) { .fs-sidebar-wrapper { width: 320px; } }
         .video-is-fullscreen .fs-sidebar-wrapper { display: block; }
         .fs-sidebar-trigger { position: absolute; top: 0; left: 0; width: 40px; height: 100%; pointer-events: auto; z-index: 100000; }
-        .fs-sidebar-panel { position: absolute; top: 0; left: 0; width: 320px; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid rgba(255, 255, 255, 0.1); transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; z-index: 100001; display: flex; flex-direction: column; box-shadow: 20px 0 40px rgba(0,0,0,0.5); }
+        .fs-sidebar-trigger::after { content: ''; position: absolute; top: 50%; left: 6px; width: 4px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 4px; transform: translateY(-50%); transition: background 0.2s; }
+        .fs-sidebar-trigger:hover::after { background: rgba(255,255,255,0.6); }
+        .fs-sidebar-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid rgba(255, 255, 255, 0.1); transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; z-index: 100001; display: flex; flex-direction: column; box-shadow: 20px 0 40px rgba(0,0,0,0.5); }
         .fs-sidebar-trigger:hover + .fs-sidebar-panel, .fs-sidebar-panel:hover { transform: translateX(0); }
         .fs-sidebar-panel::-webkit-scrollbar { width: 5px; } .fs-sidebar-panel::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.6); border-radius: 10px; } .fs-sidebar-panel::-webkit-scrollbar-track { background: transparent; }
     </style>
 
-    <div id="shortcuts-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
-        <div class="glass-menu w-full max-w-md rounded-2xl p-6 text-white transform scale-95 transition-transform duration-300">
+    <div id="shortcuts-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0 px-4">
+        <div class="glass-menu w-full max-w-md rounded-2xl p-5 sm:p-6 text-white transform scale-95 transition-transform duration-300">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-                <h3 class="text-lg font-bold">Keyboard Shortcuts</h3>
+                <h3 class="text-base sm:text-lg font-bold">Keyboard Shortcuts</h3>
                 <button onclick="toggleShortcutsModal()" class="rounded-full p-1 hover:bg-slate-800 transition">
                     <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            <div class="mt-4 space-y-3">
+            <div class="mt-4 space-y-3 text-sm">
                 <div class="flex justify-between"><span class="text-slate-400">Play / Pause</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">Space</kbd></div>
                 <div class="flex justify-between"><span class="text-slate-400">Mute / Unmute</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">M</kbd></div>
                 <div class="flex justify-between"><span class="text-slate-400">Fullscreen</span> <kbd class="rounded bg-slate-800 px-2 py-1 text-xs font-mono border border-slate-700">F</kbd></div>
@@ -397,60 +380,61 @@ new class extends Component {
         </div>
     </div>
 
-    <div id="content-container" class="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-6 sm:py-8">
+    <div id="content-container" class="mx-auto flex w-full max-w-4xl flex-col gap-4 sm:gap-5 px-3 sm:px-4 py-4 sm:py-8">
 
         <header class="text-center dim-in-theater">
-            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100 hover:shadow-violet-300 transition duration-300">
-                <span class="grid size-7 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-sky-500 text-white">▶</span>
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100 hover:shadow-violet-300 transition duration-300">
+                <span class="grid size-6 sm:size-7 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-sky-500 text-white">▶</span>
                 LiveTVPro
             </div>
-            <p class="mt-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">HLS / DASH / M3U8 Live Streaming Portal</p>
-            <div class="mt-3 flex justify-center gap-2 text-[11px] font-bold">
-                <span class="rounded-full bg-white/80 px-3 py-1 text-violet-600 shadow-sm transition hover:bg-white hover:-translate-y-0.5 cursor-pointer tracking-wide">● Groups: {{ count($groups) }}</span>
-                <span class="rounded-full bg-sky-500 px-3 py-1 text-white shadow-sm transition hover:bg-sky-400 hover:-translate-y-0.5 active:scale-95 cursor-pointer tracking-wide">Join Telegram</span>
+            <p class="mt-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">HLS / DASH / M3U8 Live Streaming Portal</p>
+            <div class="mt-2 sm:mt-3 flex justify-center gap-2 text-[10px] sm:text-[11px] font-bold">
+                <span class="rounded-full bg-white/80 px-2 sm:px-3 py-1 text-violet-600 shadow-sm transition hover:bg-white hover:-translate-y-0.5 cursor-pointer tracking-wide">● Groups: {{ count($groups) }}</span>
+                <span class="rounded-full bg-sky-500 px-2 sm:px-3 py-1 text-white shadow-sm transition hover:bg-sky-400 hover:-translate-y-0.5 active:scale-95 cursor-pointer tracking-wide">Join Telegram</span>
             </div>
         </header>
 
-        <section class="dim-in-theater rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
-            <div class="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
+        <section class="dim-in-theater rounded-2xl bg-white/85 p-3 sm:p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
+            <div class="flex items-center justify-between gap-3 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
                 <span>● Single stream URL</span>
-                <span class="text-slate-400">HLS / DASH / HTML5</span>
+                <span class="text-slate-400 hidden sm:inline">HLS / DASH / HTML5</span>
             </div>
-            <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-                <input wire:model="singleStreamUrl" class="min-h-11 flex-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800" placeholder="https://example.com/stream.m3u8">
-                <button wire:click="playSingleStream" class="rounded-xl bg-violet-600 px-5 py-3 cursor-pointer text-xs font-bold text-white shadow-lg shadow-violet-300 transition-all duration-300 hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 hover:shadow-violet-400/50">▶ Play</button>
-                <button type="button" class="rounded-xl border border-violet-100 bg-white px-4 py-3 cursor-pointer text-xs font-bold text-violet-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-all duration-200 hover:bg-violet-50 active:scale-95">ⓘ Check</button>
+            <div class="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2">
+                <input wire:model="singleStreamUrl" class="min-h-10 sm:min-h-11 flex-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800" placeholder="https://example.com/stream.m3u8">
+                <div class="flex gap-2">
+                    <button wire:click="playSingleStream" class="flex-1 sm:flex-none rounded-xl bg-violet-600 px-4 sm:px-5 py-2 sm:py-3 cursor-pointer text-xs font-bold text-white shadow-lg shadow-violet-300 transition-all duration-300 hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 hover:shadow-violet-400/50 flex items-center justify-center gap-1.5"><svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play</button>
+                    <button type="button" class="flex-1 sm:flex-none rounded-xl border border-violet-100 bg-white px-3 sm:px-4 py-2 sm:py-3 cursor-pointer text-xs font-bold text-violet-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-all duration-200 hover:bg-violet-50 active:scale-95 text-center">ⓘ Check</button>
+                </div>
             </div>
-            <label class="mt-4 block text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">Playlist / M3U / HTML embed</label>
-            <textarea wire:model="playlist" rows="4" class="mt-2 w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800"></textarea>
-            <div class="mt-3 flex gap-2">
-                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="rounded-xl bg-violet-600 px-4 py-2 cursor-pointer text-xs font-bold text-white transition-all duration-200 hover:bg-violet-700 hover:-translate-y-0.5 hover:shadow-md active:scale-95">Reload Group</button>
-                <button wire:click="clearInputs" class="rounded-xl bg-slate-100 px-4 py-2 cursor-pointer text-xs font-bold text-slate-500 dark:bg-slate-800 transition-all duration-200 hover:bg-slate-200 active:scale-95">Clear</button>
+            <label class="mt-3 sm:mt-4 block text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">Playlist / M3U / HTML embed</label>
+            <textarea wire:model="playlist" rows="3" class="mt-1.5 sm:mt-2 w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800"></textarea>
+            <div class="mt-2 sm:mt-3 flex gap-2">
+                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="flex-1 sm:flex-none rounded-xl bg-violet-600 px-3 sm:px-4 py-2 cursor-pointer text-xs font-bold text-white transition-all duration-200 hover:bg-violet-700 hover:-translate-y-0.5 hover:shadow-md active:scale-95">Reload Group</button>
+                <button wire:click="clearInputs" class="flex-1 sm:flex-none rounded-xl bg-slate-100 px-3 sm:px-4 py-2 cursor-pointer text-xs font-bold text-slate-500 dark:bg-slate-800 transition-all duration-200 hover:bg-slate-200 active:scale-95">Clear</button>
             </div>
         </section>
 
-        <section class="dim-in-theater rounded-2xl bg-white/85 p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
-            <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
+        <section class="dim-in-theater rounded-2xl bg-white/85 p-3 sm:p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
+            <div class="mb-2 sm:mb-3 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
                 <span>📡 পাবলিক সোর্স — ক্লিক করে লোড + চেক</span>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-800 transition hover:bg-slate-200 tracking-wide">{{ count($this->filteredChannels()) }} visible</span>
+                <span class="rounded-full bg-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-slate-500 dark:bg-slate-800 transition hover:bg-slate-200 tracking-wide">{{ count($this->filteredChannels()) }} visible</span>
             </div>
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-1.5 sm:gap-2">
                 @foreach ($groups as $group)
-                    <button wire:key="group-{{ $group['key'] }}" wire:click="loadGroup('{{ $group['key'] }}')" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-300 active:scale-95 hover:-translate-y-0.5 hover:shadow-md {{ $activeGroupKey === $group['key'] ? 'border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-200/60' : 'border-violet-100 bg-white text-slate-600 hover:border-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200' }}">
+                    <button wire:key="group-{{ $group['key'] }}" wire:click="loadGroup('{{ $group['key'] }}')" class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border px-2 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-bold transition-all duration-300 active:scale-95 hover:-translate-y-0.5 hover:shadow-md {{ $activeGroupKey === $group['key'] ? 'border-violet-500 bg-violet-600 text-white shadow-lg shadow-violet-200/60' : 'border-violet-100 bg-white text-slate-600 hover:border-violet-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200' }}">
                         <span class="tracking-wide">{{ $group['name'] }}</span>
-                        <span class="rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider transition-colors {{ $activeGroupKey === $group['key'] ? 'bg-white/20 text-white' : 'bg-violet-50 text-violet-600' }}">{{ $group['badge'] }}</span>
+                        <span class="rounded-md px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-colors {{ $activeGroupKey === $group['key'] ? 'bg-white/20 text-white' : 'bg-violet-50 text-violet-600' }}">{{ $group['badge'] }}</span>
                     </button>
                 @endforeach
             </div>
 
-            <!-- ANIMATED PROGRESS BAR -->
-            <div wire:loading wire:target="loadGroup" class="w-full mt-5 px-3">
+            <div wire:loading wire:target="loadGroup" class="w-full mt-4 sm:mt-5 px-1 sm:px-3">
                 <div class="h-1 w-full bg-slate-200 dark:bg-slate-700 overflow-hidden rounded-full relative">
                     <div class="absolute top-0 left-0 h-full bg-violet-600 rounded-full" style="animation: simulated-progress 5s ease-out forwards;"></div>
                 </div>
-                <div class="mt-3 flex items-center justify-center gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div class="mt-2.5 sm:mt-3 flex items-center justify-center gap-2 sm:gap-3 text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400">
                     <span class="flex items-center gap-1.5">
-                        <svg class="size-3.5 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24">
+                        <svg class="size-3 sm:size-3.5 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -463,15 +447,15 @@ new class extends Component {
             </div>
 
             @if ($loadMessage)
-                <p wire:loading.remove wire:target="loadGroup" class="mt-3 text-xs font-semibold text-slate-500 animate-pulse tracking-wide">⚠️ {{ $loadMessage }}</p>
+                <p wire:loading.remove wire:target="loadGroup" class="mt-2 sm:mt-3 text-[11px] sm:text-xs font-semibold text-slate-500 tracking-wide">⚠️ {{ $loadMessage }}</p>
             @endif
-            <p wire:loading.remove wire:target="loadGroup" class="mt-3 text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
+            <p wire:loading.remove wire:target="loadGroup" class="mt-2 sm:mt-3 text-[10px] sm:text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
         </section>
 
         <section class="player-section-wrapper overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700 transition-all duration-500 hover:shadow-violet-200/60">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-50 dark:border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div id="active-channel-logo" class="grid size-11 shrink-0 place-items-center rounded-[10px] border border-slate-200 bg-white overflow-hidden text-xs font-black text-indigo-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 hover:scale-105">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 px-3 sm:px-4 py-3 border-b border-slate-50 dark:border-slate-800">
+                <div class="flex items-start sm:items-center gap-3">
+                    <div id="active-channel-logo" class="grid size-10 sm:size-11 shrink-0 place-items-center rounded-[10px] border border-slate-200 bg-white overflow-hidden text-xs font-black text-indigo-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 hover:scale-105">
                         @if(str_starts_with($this->selectedChannel()['logo'], 'http'))
                             <img src="{{ $this->selectedChannel()['logo'] }}" alt="Logo" class="size-full object-contain p-0.5">
                         @else
@@ -479,15 +463,15 @@ new class extends Component {
                         @endif
                     </div>
                     <div class="flex flex-col justify-center">
-                        <h2 id="active-channel-title" class="text-[15px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight transition-colors hover:text-indigo-600 tracking-wide">
-                            {{ $this->selectedChannel()['name'] }} <span class="font-semibold text-slate-500">· {{ $this->selectedChannel()['category'] }}</span>
+                        <h2 id="active-channel-title" class="text-[14px] sm:text-[15px] font-extrabold text-slate-800 dark:text-slate-100 leading-tight transition-colors hover:text-indigo-600 tracking-wide break-words">
+                            {{ $this->selectedChannel()['name'] }} <span class="font-semibold text-slate-500 text-xs sm:text-sm">· {{ $this->selectedChannel()['category'] }}</span>
                         </h2>
                         <div class="mt-1 flex items-center gap-2">
-                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider">
-                                <svg class="size-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg>
+                            <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                                <svg class="size-3 sm:size-3.5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M10 9l5 3-5 3z"></path></svg>
                                 LIVE PLAYER
                             </div>
-                            <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/60 px-2 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200/60 dark:bg-emerald-900/30 dark:ring-emerald-800 shadow-sm tracking-wider">
+                            <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/60 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-200/60 dark:bg-emerald-900/30 dark:ring-emerald-800 shadow-sm tracking-wider">
                                 <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                 LIVE
                             </span>
@@ -495,30 +479,28 @@ new class extends Component {
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button id="top-fullscreen-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 tracking-wide">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                    <button id="top-fullscreen-btn" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                         Full
                     </button>
-                    <button id="top-stop-btn" class="flex items-center gap-1.5 cursor-pointer rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/40 dark:bg-slate-800 dark:hover:bg-rose-900/60 tracking-wide">
-                        <span class="size-2 rounded-sm bg-rose-500"></span>
+                    <button id="top-stop-btn" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-xl border border-rose-200 bg-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/40 dark:bg-slate-800 dark:hover:bg-rose-900/60 tracking-wide">
+                        <span class="size-1.5 sm:size-2 rounded-sm bg-rose-500"></span>
                         Stop
                     </button>
                 </div>
             </div>
 
-            <!-- WRAPPER FOR FLOATING PLAYER TO PREVENT LAYOUT JUMP -->
             <div id="video-placeholder" class="w-full aspect-video relative bg-black/5 dark:bg-black/20 rounded-b-2xl sm:rounded-none">
                 <div wire:ignore id="video-container" class="relative w-full h-full bg-black overflow-hidden transition-all group z-40">
 
-                    <!-- Close button for floating player -->
-                    <button onclick="document.getElementById('video-container').classList.remove('floating-player'); window.scrollTo({top: document.getElementById('video-placeholder').offsetTop - 100, behavior: 'smooth'})" class="close-floating absolute top-2 right-2 size-8 bg-rose-600 text-white rounded-full items-center justify-center shadow-lg z-[10000] hover:bg-rose-700 transition-transform hover:scale-110 active:scale-95">
-                        <svg class="size-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button onclick="document.getElementById('video-container').classList.remove('floating-player'); window.scrollTo({top: document.getElementById('video-placeholder').offsetTop - 60, behavior: 'smooth'})" class="close-floating absolute top-1 sm:top-2 right-1 sm:right-2 size-6 sm:size-8 bg-rose-600 text-white rounded-full items-center justify-center shadow-lg z-[10000] hover:bg-rose-700 transition-transform hover:scale-110 active:scale-95">
+                        <svg class="size-3 sm:size-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
                     <div id="custom-context-menu" class="absolute hidden glass-menu rounded-xl py-2 w-48 z-[100] text-sm text-slate-200">
                         <button onclick="copyToClipboard('{{ $this->selectedChannel()['url'] }}'); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
+                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
                         </button>
                         <button onclick="toggleLoop(); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
                             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop Video <span id="loop-status" class="ml-auto text-xs text-slate-400">Off</span>
@@ -529,202 +511,195 @@ new class extends Component {
                         </button>
                     </div>
 
-                    <div id="stats-box" class="absolute top-4 left-4 glass-menu rounded-lg p-3 text-[11px] font-mono text-slate-200 hidden z-50">
+                    <div id="stats-box" class="absolute top-2 sm:top-4 left-2 sm:left-4 glass-menu rounded-lg p-2 sm:p-3 text-[10px] sm:text-[11px] font-mono text-slate-200 hidden z-50 max-w-[90vw]">
                         <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-1">
                             <span class="font-bold text-white">Video Stats</span>
-                            <button onclick="toggleStats()" class="hover:text-white">✕</button>
+                            <button onclick="toggleStats()" class="hover:text-white p-1">✕</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <div class="grid grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-1">
                             <span class="text-slate-400">Resolution:</span> <span id="stat-res">-</span>
                             <span class="text-slate-400">Bandwidth:</span> <span id="stat-bw">-</span>
-                            <span class="text-slate-400">Dropped Frames:</span> <span id="stat-frames">-</span>
+                            <span class="text-slate-400">Dropped:</span> <span id="stat-frames">-</span>
                             <span class="text-slate-400">Protocol:</span> <span id="stat-proto">{{ $this->selectedChannel()['protocol'] }}</span>
                         </div>
                     </div>
 
                     <div id="video-grid" class="absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300">
-                        <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)"
-                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 1)">
+                        <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 1)">
                             <video id="player-1" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-1" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
-                                <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                                <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                             </div>
-                            <div id="status-1" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
-                            <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 1</div>
+                            <div id="status-1" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                            <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 1</div>
                         </div>
 
-                        <div id="slot-2" class="video-slot slot-inactive hidden" onclick="setActiveSlot(2)"
-                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 2)">
+                        <div id="slot-2" class="video-slot slot-inactive hidden" onclick="setActiveSlot(2)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 2)">
                             <video id="player-2" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-2" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
-                                <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                                <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                             </div>
-                            <div id="status-2" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
-                            <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 2</div>
+                            <div id="status-2" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                            <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 2</div>
                         </div>
 
-                        <div id="slot-3" class="video-slot slot-inactive hidden" onclick="setActiveSlot(3)"
-                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 3)">
+                        <div id="slot-3" class="video-slot slot-inactive hidden" onclick="setActiveSlot(3)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 3)">
                             <video id="player-3" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-3" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
-                                <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                                <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                             </div>
-                            <div id="status-3" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
-                            <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 3</div>
+                            <div id="status-3" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                            <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 3</div>
                         </div>
 
-                        <div id="slot-4" class="video-slot slot-inactive hidden" onclick="setActiveSlot(4)"
-                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 4)">
+                        <div id="slot-4" class="video-slot slot-inactive hidden" onclick="setActiveSlot(4)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 4)">
                             <video id="player-4" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-4" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
-                                <div class="size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                                <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                             </div>
-                            <div id="status-4" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
-                            <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 4</div>
+                            <div id="status-4" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
+                            <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 4</div>
                         </div>
                     </div>
 
-                    <!-- Custom Controls -->
-                    <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-100 transition-opacity duration-500 z-30">
-                        <div class="flex items-center gap-4">
-                            <button id="play-pause-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
-                                <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-2 sm:p-4 px-3 sm:px-5 opacity-100 transition-opacity duration-500 z-30">
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <button id="play-pause-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
+                                <svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                             </button>
-                            <div class="group/vol flex items-center gap-2">
-                                <button id="mute-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
-                                    <svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                            <div class="group/vol flex items-center gap-1 sm:gap-2">
+                                <button id="mute-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
+                                    <svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
                                 </button>
-                                <input type="range" id="volume-slider" class="custom-vol w-0 cursor-pointer opacity-0 transition-all duration-300 group-hover/vol:w-20 group-hover/vol:opacity-100" min="0" max="1" step="0.05" value="0">
+                                <input type="range" id="volume-slider" class="custom-vol w-0 cursor-pointer opacity-0 transition-all duration-300 group-hover/vol:w-16 sm:group-hover/vol:w-20 group-hover/vol:opacity-100" min="0" max="1" step="0.05" value="0">
                             </div>
-                            <div class="flex items-center gap-2 font-bold text-white ml-2">
-                                <span class="size-2.5 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"></span>
-                                <span class="text-sm font-extrabold tracking-wider">LIVE</span>
+                            <div class="flex items-center gap-1 sm:gap-2 font-bold text-white ml-1 sm:ml-2">
+                                <span class="size-2 sm:size-2.5 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"></span>
+                                <span class="text-xs sm:text-sm font-extrabold tracking-wider">LIVE</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 relative">
+                        <div class="flex items-center gap-1.5 sm:gap-3 relative">
                             <div class="relative group/settings">
-                                <button class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Settings">
-                                    <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <button class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Settings">
+                                    <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 </button>
-                                <div class="absolute bottom-12 right-0 hidden group-hover/settings:block w-36 glass-menu rounded-xl py-2 shadow-xl border border-white/10 z-50">
-                                    <div class="px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quality</div>
-                                    <div id="quality-list" class="flex flex-col text-sm text-white">
-                                        <button onclick="setQuality(-1)" class="text-left px-4 py-1.5 hover:bg-white/20 transition flex items-center gap-2 text-indigo-300">
+                                <div class="absolute bottom-10 sm:bottom-12 right-0 hidden group-hover/settings:block w-32 sm:w-36 glass-menu rounded-xl py-2 shadow-xl border border-white/10 z-50">
+                                    <div class="px-3 sm:px-4 py-1 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quality</div>
+                                    <div id="quality-list" class="flex flex-col text-xs sm:text-sm text-white">
+                                        <button onclick="setQuality(-1)" class="text-left px-3 sm:px-4 py-1.5 hover:bg-white/20 transition flex items-center gap-2 text-indigo-300">
                                             <span class="size-1.5 rounded-full bg-indigo-500"></span> Auto
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <button id="layout-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Multi-View / Split Screen">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
+                            <button id="layout-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Multi-View / Split Screen">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
                             </button>
 
-                            <button id="airplay-btn" class="hidden grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="AirPlay">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4l-4 4m4-4l4 4m-4-4v12"></path></svg>
+                            <button id="airplay-btn" class="hidden grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="AirPlay">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4l-4 4m4-4l4 4m-4-4v12"></path></svg>
                             </button>
 
-                            <button id="cast-btn" class="hidden grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Chromecast">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 20h.01" /></svg>
+                            <button id="cast-btn" class="hidden grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Chromecast">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 20h.01" /></svg>
                             </button>
 
-                            <button id="theater-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Theater Mode (T)">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"></path></svg>
+                            <button id="theater-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90 hidden sm:grid" title="Theater Mode (T)">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"></path></svg>
                             </button>
-                            <button id="pip-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Picture-in-Picture">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4.5" width="20" height="15" rx="2"></rect><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none"></rect></svg>
+                            <button id="pip-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Picture-in-Picture">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4.5" width="20" height="15" rx="2"></rect><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" stroke="none"></rect></svg>
                             </button>
-                            <button id="fullscreen-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Fullscreen (F / Double Click)">
-                                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
+                            <button id="fullscreen-btn" class="grid size-8 sm:size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Fullscreen (F / Double Click)">
+                                <svg class="size-4 sm:size-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-xs dark:divide-slate-700 dark:border-slate-700 transition-colors">
-                <div class="p-3 hover:bg-slate-50 transition cursor-default"><strong class="block text-violet-600 text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Total</span></div>
-                <div class="p-3 hover:bg-emerald-50 transition cursor-default"><strong class="block text-emerald-500 text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Live</span></div>
-                <div class="p-3 hover:bg-orange-50 transition cursor-default"><strong class="block text-orange-500 text-sm">0</strong><span class="text-slate-400 font-medium">Down</span></div>
-                <div class="p-3 hover:bg-rose-50 transition cursor-default"><strong class="block text-rose-500 text-sm">0</strong><span class="text-slate-400 font-medium">Errors</span></div>
+            <div class="grid grid-cols-4 divide-x divide-violet-100 border-t border-violet-100 text-center text-[10px] sm:text-xs dark:divide-slate-700 dark:border-slate-700 transition-colors">
+                <div class="p-2 sm:p-3 hover:bg-slate-50 transition cursor-default"><strong class="block text-violet-600 text-xs sm:text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Total</span></div>
+                <div class="p-2 sm:p-3 hover:bg-emerald-50 transition cursor-default"><strong class="block text-emerald-500 text-xs sm:text-sm">{{ count($channels) }}</strong><span class="text-slate-400 font-medium">Live</span></div>
+                <div class="p-2 sm:p-3 hover:bg-orange-50 transition cursor-default"><strong class="block text-orange-500 text-xs sm:text-sm">0</strong><span class="text-slate-400 font-medium">Down</span></div>
+                <div class="p-2 sm:p-3 hover:bg-rose-50 transition cursor-default"><strong class="block text-rose-500 text-xs sm:text-sm">0</strong><span class="text-slate-400 font-medium">Errors</span></div>
             </div>
         </section>
 
-        <!-- Other UI Sections -->
         <section class="dim-in-theater rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 transition-shadow hover:shadow-indigo-200">
-            <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50">
-                    <button class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 cursor-pointer text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 tracking-wide">
-                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 transition-colors">{{ count($this->filteredChannels()) }}</span>
+            <div class="flex flex-col sm:flex-row gap-3 px-3 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50 flex-1">
+                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg bg-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 cursor-pointer text-[10px] sm:text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 tracking-wide">
+                        সব <span class="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[9px] sm:text-[10px] text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 transition-colors">{{ count($this->filteredChannels()) }}</span>
                     </button>
 
                     <button @click="showFavoritesOnly = !showFavoritesOnly"
                             :class="showFavoritesOnly ? 'bg-rose-500 text-white shadow-md border-rose-500' : 'bg-white text-rose-500 hover:bg-rose-50 dark:bg-slate-700 dark:text-rose-400 dark:hover:bg-slate-600 dark:border-rose-900/50'"
-                            class="flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 cursor-pointer text-xs font-bold shadow-sm transition-all duration-200 active:scale-95 tracking-wide">
-                        <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        ফেভারিট (<span x-text="favorites.length"></span>)
+                            class="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-rose-200 px-2.5 py-1.5 sm:px-3 sm:py-1.5 cursor-pointer text-[10px] sm:text-xs font-bold shadow-sm transition-all duration-200 active:scale-95 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span class="hidden sm:inline">ফেভারিট</span> (<span x-text="favorites.length"></span>)
                     </button>
 
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-emerald-500"></span> চলবে <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ count($this->filteredChannels()) }}</span>
+                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-1.5 cursor-pointer text-[10px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
+                        <span class="size-1.5 sm:size-2 rounded-full bg-emerald-500"></span> চলবে <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[9px] sm:text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">{{ count($this->filteredChannels()) }}</span>
                     </button>
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-orange-500"></span> ব্লকড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
+                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-1.5 cursor-pointer text-[10px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
+                        <span class="size-1.5 sm:size-2 rounded-full bg-orange-500"></span> ব্লকড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[9px] sm:text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
                     </button>
-                    <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
-                        <span class="size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
+                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg px-2 sm:px-3 py-1.5 cursor-pointer text-[10px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 active:scale-95 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700 tracking-wide">
+                        <span class="size-1.5 sm:size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[9px] sm:text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button class="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
-                        চলবে কপি
+                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-indigo-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+                        <span class="hidden sm:inline">চলবে কপি</span>
                     </button>
-                    <button class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <button class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-indigo-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         .m3u
                     </button>
-                    <button wire:click="deleteBlockedChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        ব্লকড ডিলিট
+                    <button wire:click="deleteBlockedChannels" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span class="hidden sm:inline">ব্লকড ডিলিট</span>
                     </button>
-                    <button wire:click="deleteDeadChannels" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
-                        <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        ডেড ডিলিট
+                    <button wire:click="deleteDeadChannels" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
+                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span class="hidden sm:inline">ডেড ডিলিট</span>
                     </button>
                 </div>
             </div>
 
-            <div class="px-4 py-3">
+            <div class="px-3 sm:px-4 py-3">
                 <div class="relative group">
                     <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input wire:model.live.debounce.300ms="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-10 text-sm font-medium text-slate-700 outline-none transition-all duration-300 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-md focus:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900 dark:focus:ring-indigo-900/50" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
+                    <input wire:model.live.debounce.300ms="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 sm:py-2.5 pl-8 sm:pl-9 pr-8 sm:pr-10 text-xs sm:text-sm font-medium text-slate-700 outline-none transition-all duration-300 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-md focus:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900 dark:focus:ring-indigo-900/50" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
                     @if($search !== '')
-                        <button wire:click="$set('search', '')" class="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full bg-slate-200 text-slate-500 hover:bg-rose-500 hover:text-white transition-all active:scale-90 dark:bg-slate-700 dark:text-slate-400">
+                        <button wire:click="$set('search', '')" class="absolute right-2 sm:right-3 top-1/2 grid size-5 sm:size-5 -translate-y-1/2 place-items-center rounded-full bg-slate-200 text-slate-500 hover:bg-rose-500 hover:text-white transition-all active:scale-90 dark:bg-slate-700 dark:text-slate-400">
                             <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     @endif
                 </div>
             </div>
 
-            <div class="flex items-center justify-between px-4 pb-2 pt-1 border-b border-slate-50 dark:border-slate-800">
-                <label class="flex items-center gap-2 text-xs font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
-                    <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer transition-transform active:scale-90">
+            <div class="flex items-center justify-between px-3 sm:px-4 pb-2 pt-1 border-b border-slate-50 dark:border-slate-800">
+                <label class="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
+                    <input type="checkbox" class="size-3.5 sm:size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer transition-transform active:scale-90">
                     সব নির্বাচন করুন
                 </label>
-                <span class="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">
+                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">
                     <span x-show="!showFavoritesOnly">{{ count($this->filteredChannels()) }}টি</span>
                     <span x-show="showFavoritesOnly" x-text="favorites.length + 'টি'" style="display: none;"></span>
                 </span>
             </div>
 
-            <!-- MAIN CHANNEL LIST WITH LAZY LOAD & DRAG & DROP -->
             <div wire:loading.remove wire:target="loadGroup"
                  x-data="{ limit: 30 }"
                  @scroll="if($el.scrollTop + $el.clientHeight >= $el.scrollHeight - 200) limit += 30"
-                 class="flex flex-col gap-2 p-3 stagger-fade-in max-h-[800px] overflow-y-auto">
+                 class="flex flex-col gap-2 p-2 sm:p-3 stagger-fade-in max-h-[800px] overflow-y-auto">
                 @foreach ($this->filteredChannels() as $channel)
                     @php
                         $isDead = $channel['status'] === 'DEAD';
@@ -739,101 +714,92 @@ new class extends Component {
                          draggable="true"
                          data-channel="{{ json_encode(['id' => $channel['id'], 'url' => $channel['url'], 'name' => $channel['name'], 'category' => $channel['category'], 'logo' => $channel['logo']]) }}"
                          ondragstart="event.dataTransfer.setData('application/json', this.dataset.channel); event.dataTransfer.effectAllowed = 'copy';"
-                         class="flex items-center gap-3 rounded-xl border p-3 group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md cursor-grab active:cursor-grabbing {{ $containerClass }}">
+                         class="flex items-center gap-2 sm:gap-3 rounded-xl border p-2 sm:p-3 group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md cursor-grab active:cursor-grabbing {{ $containerClass }}">
 
-                        <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
+                        <input type="checkbox" class="size-3.5 sm:size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
 
-                        <!-- Drag Handle Icon -->
-                        <div class="text-slate-300 hover:text-slate-500 dark:text-slate-600 transition-colors hidden sm:block">
+                        <div class="text-slate-300 hover:text-slate-500 dark:text-slate-600 transition-colors hidden sm:block shrink-0">
                             <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
                         </div>
 
-                        <div class="grid size-12 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
+                        <div class="grid size-10 sm:size-12 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
                             @if(str_starts_with($channel['logo'], 'http'))
                                 <img src="{{ $channel['logo'] }}" alt="Logo" class="size-full object-contain p-0.5 transition-transform duration-500 group-hover:scale-110">
                             @else
-                                <span class="text-xs font-black text-indigo-600 dark:text-indigo-400">{{ $channel['logo'] }}</span>
+                                <span class="text-[10px] sm:text-xs font-black text-indigo-600 dark:text-indigo-400">{{ $channel['logo'] }}</span>
                             @endif
                         </div>
 
                         <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2">
-                                <h3 class="truncate text-sm font-extrabold text-slate-800 dark:text-slate-200 transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{{ $channel['name'] }}</h3>
-                                <span class="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 shadow-sm">{{ $channel['category'] }}</span>
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <h3 class="truncate text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-400">{{ $channel['name'] }}</h3>
+                                <span class="rounded bg-indigo-50 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 shadow-sm">{{ $channel['category'] }}</span>
 
                                 @if($channel['is_http'])
-                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm animate-pulse">HTTP (mixed)</span>
+                                    <span class="rounded bg-orange-100 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm animate-pulse">HTTP</span>
                                 @endif
                                 @if($channel['proxy_needed'])
-                                    <span class="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm">proxy লাগবে</span>
+                                    <span class="rounded bg-orange-100 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm hidden sm:inline">proxy লাগবে</span>
                                 @endif
                             </div>
 
-                            <p class="truncate text-[11px] font-medium text-slate-500 mt-0.5 dark:text-slate-400" title="{{ $channel['url'] }}">{{ $channel['url'] }}</p>
-                            <p class="text-[10px] font-medium text-slate-400 mt-0.5 dark:text-slate-500">৬:৫৪:২৫ AM</p>
+                            <p class="truncate text-[9px] sm:text-[11px] font-medium text-slate-500 mt-0.5 dark:text-slate-400" title="{{ $channel['url'] }}">{{ $channel['url'] }}</p>
+                            <p class="text-[8px] sm:text-[10px] font-medium text-slate-400 mt-0.5 dark:text-slate-500">৬:৫৪:২৫ AM</p>
                         </div>
 
-                        <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end w-[80px] sm:w-auto">
 
-                            <!-- FAVORITE BUTTON -->
                             <button @click.stop="toggleFav('{{ $channel['url'] }}')"
-                                    class="grid size-[30px] place-items-center cursor-pointer rounded-lg border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm"
+                                    class="grid size-[26px] sm:size-[30px] place-items-center cursor-pointer rounded-lg border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm"
                                     :class="isFav('{{ $channel['url'] }}') ? 'bg-rose-50 border-rose-200 text-rose-500 dark:bg-rose-900/30 dark:border-rose-900/50 dark:text-rose-400' : 'bg-white border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700'">
-                                <svg x-show="!isFav('{{ $channel['url'] }}')" class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                <svg x-show="isFav('{{ $channel['url'] }}')" class="size-3.5" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <svg x-show="!isFav('{{ $channel['url'] }}')" class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                <svg x-show="isFav('{{ $channel['url'] }}')" class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                             </button>
 
                             @if($isDead)
-                                <span class="flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50 shadow-sm">
+                                <span class="hidden sm:flex items-center gap-1.5 rounded-full bg-rose-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50 shadow-sm">
                                     <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     DEAD
                                 </span>
-                                <button wire:click="verifyChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    Retry
+                                <button wire:click="verifyChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    <span class="hidden sm:inline">Retry</span>
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    ডিলিট
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    <span class="hidden sm:inline">ডিলিট</span>
                                 </button>
                             @elseif($isBlocked)
-                                <span class="flex items-center gap-1.5 rounded-full bg-orange-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50 shadow-sm">
+                                <span class="hidden sm:flex items-center gap-1.5 rounded-full bg-orange-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50 shadow-sm">
                                     <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                     BLOCKED
                                 </span>
-                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
+                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                    <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span class="hidden sm:inline">Play</span>
                                 </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> Copy
+                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> <span class="hidden sm:inline">Copy</span>
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[26px] sm:size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             @else
-                                <span class="flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm">
+                                <span class="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm">
                                     <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> চলবে
                                 </span>
-                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-indigo-400">
-                                    <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
+                                <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-indigo-400">
+                                    <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span class="hidden sm:inline">Play</span>
                                 </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> Copy
+                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> <span class="hidden sm:inline">Copy</span>
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[26px] sm:size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
+                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             @endif
                         </div>
                     </div>
                 @endforeach
-
-                @if(count($this->filteredChannels()) === 0)
-                    <div class="py-10 text-center text-slate-500 dark:text-slate-400">
-                        <svg class="mx-auto size-10 opacity-30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <p class="text-sm font-semibold tracking-wide">কোনো চ্যানেল পাওয়া যায়নি</p>
-                    </div>
-                @endif
             </div>
         </section>
 
@@ -850,47 +816,47 @@ new class extends Component {
                 <div class="fs-sidebar-trigger" title="Show Channels"></div>
                 <div class="fs-sidebar-panel">
 
-                    <div class="px-5 py-4 border-b border-white/10 bg-slate-900/40 flex items-center justify-between">
-                        <div class="text-[13px] font-extrabold text-white tracking-widest flex items-center gap-2">
-                            <svg class="size-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-white/10 bg-slate-900/40 flex items-center justify-between">
+                        <div class="text-[11px] sm:text-[13px] font-extrabold text-white tracking-widest flex items-center gap-2">
+                            <svg class="size-3.5 sm:size-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
                             CHANNELS
                         </div>
                         <div class="flex items-center gap-2">
                             <button @click="showFavoritesOnly = !showFavoritesOnly"
                                     :class="showFavoritesOnly ? 'bg-rose-500/80 text-white' : 'bg-white/10 text-slate-300 hover:bg-white/20'"
                                     class="p-1 rounded transition-colors" title="Toggle Favorites">
-                                <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                             </button>
                         </div>
                     </div>
 
                     <div x-data="{ fsLimit: 30 }"
                          @scroll="if($el.scrollTop + $el.clientHeight >= $el.scrollHeight - 100) fsLimit += 30"
-                         class="flex-1 overflow-y-auto p-2 space-y-1">
+                         class="flex-1 overflow-y-auto p-1.5 sm:p-2 space-y-1">
                         @foreach ($this->filteredChannels() as $channel)
                             <div x-show="(!showFavoritesOnly || isFav('{{ $channel['url'] }}')) && {{ $loop->index }} < fsLimit"
                                  draggable="true"
                                  data-channel="{{ json_encode(['id' => $channel['id'], 'url' => $channel['url'], 'name' => $channel['name'], 'category' => $channel['category'], 'logo' => $channel['logo']]) }}"
                                  ondragstart="event.dataTransfer.setData('application/json', this.dataset.channel); event.dataTransfer.effectAllowed = 'copy';"
-                                 class="w-full text-left flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition-all duration-200 group/fsbtn active:scale-95 cursor-grab">
+                                 class="w-full text-left flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-white/10 transition-all duration-200 group/fsbtn active:scale-95 cursor-grab">
 
-                                <div wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-3 flex-1">
-                                    <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden shadow-sm group-hover/fsbtn:border-indigo-500/50 transition-colors">
+                                <div wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-2 sm:gap-3 flex-1">
+                                    <div class="grid size-7 sm:size-9 shrink-0 place-items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden shadow-sm group-hover/fsbtn:border-indigo-500/50 transition-colors">
                                         @if(str_starts_with($channel['logo'], 'http'))
                                             <img src="{{ $channel['logo'] }}" class="size-full object-contain p-0.5" loading="lazy" alt="Logo">
                                         @else
-                                            <span class="text-[10px] font-black text-indigo-300">{{ $channel['logo'] }}</span>
+                                            <span class="text-[8px] sm:text-[10px] font-black text-indigo-300">{{ $channel['logo'] }}</span>
                                         @endif
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <div class="truncate text-[13px] font-bold text-slate-200 group-hover/fsbtn:text-white transition-colors">{{ $channel['name'] }}</div>
-                                        <div class="text-[10px] font-medium text-slate-400 mt-0.5">{{ $channel['category'] }}</div>
+                                        <div class="truncate text-[11px] sm:text-[13px] font-bold text-slate-200 group-hover/fsbtn:text-white transition-colors">{{ $channel['name'] }}</div>
+                                        <div class="text-[9px] sm:text-[10px] font-medium text-slate-400 mt-0.5">{{ $channel['category'] }}</div>
                                     </div>
                                 </div>
 
                                 <button @click.stop="toggleFav('{{ $channel['url'] }}')" class="p-1 hover:bg-white/20 rounded-full transition-colors shrink-0">
-                                    <svg x-show="!isFav('{{ $channel['url'] }}')" class="size-4 text-slate-400 hover:text-rose-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                    <svg x-show="isFav('{{ $channel['url'] }}')" class="size-4 text-rose-500" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                    <svg x-show="!isFav('{{ $channel['url'] }}')" class="size-3.5 sm:size-4 text-slate-400 hover:text-rose-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                    <svg x-show="isFav('{{ $channel['url'] }}')" class="size-3.5 sm:size-4 text-rose-500" fill="currentColor" viewBox="0 0 24 24" style="display: none;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                 </button>
                             </div>
                         @endforeach
@@ -917,7 +883,6 @@ new class extends Component {
             }
         };
 
-        // JS দিয়ে Fullscreen ক্লাস অ্যাড/রিমুভ করার জন্য
         const fsEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
         fsEvents.forEach(evt => document.addEventListener(evt, () => {
             const vc = document.getElementById('video-container');
@@ -933,9 +898,9 @@ new class extends Component {
             if(!toastContainer) return;
             const toast = document.createElement('div');
             const bgClass = type === 'success' ? 'bg-emerald-500/95' : 'bg-rose-500/95';
-            toast.className = `flex items-center gap-2 px-4 py-2.5 text-[13px] font-bold text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass} backdrop-blur-md z-[200]`;
+            toast.className = `flex items-center gap-2 px-4 py-2.5 text-[11px] sm:text-[13px] font-bold text-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass} backdrop-blur-md z-[200] w-[90vw] sm:w-auto text-center justify-center`;
             toast.innerHTML = type === 'success'
-                ? `<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> <span>${message}</span>`
+                ? `<svg class="size-3.5 sm:size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> <span>${message}</span>`
                 : `<span>${message}</span>`;
             toastContainer.appendChild(toast);
             setTimeout(() => {
@@ -963,7 +928,6 @@ new class extends Component {
             }
         };
 
-        // DRAG AND DROP HANDLER
         window.handleDrop = function(event, slotId) {
             const data = event.dataTransfer.getData('application/json');
             if(data) {
@@ -989,14 +953,12 @@ new class extends Component {
             }
         };
 
-        // FLOATING PLAYER (MINI PLAYER) LOGIC
         window.addEventListener('scroll', () => {
             const placeholder = document.getElementById('video-placeholder');
             const container = document.getElementById('video-container');
             if (!placeholder || !container) return;
 
             const rect = placeholder.getBoundingClientRect();
-            // If scrolled past the video and not in fullscreen/theater mode
             if (rect.bottom < 0 && !document.fullscreenElement && !document.body.classList.contains('theater-mode-active')) {
                 container.classList.add('floating-player');
             } else {
@@ -1070,16 +1032,15 @@ new class extends Component {
         let hlsPlayers = {1: null, 2: null, 3: null, 4: null}; let shakaPlayers = {1: null, 2: null, 3: null, 4: null}; let retryCounts = {1: 0, 2: 0, 3: 0, 4: 0};
         const MAX_RETRIES = 3;
 
-        // CHROMECAST CURRENT STREAM TRACKING
         window.currentStreamUrls = {1: null, 2: null, 3: null, 4: null};
         window.currentStreamNames = {1: null, 2: null, 3: null, 4: null};
 
         const customControls = document.getElementById('custom-controls'); const playPauseBtn = document.getElementById('play-pause-btn'); const muteBtn = document.getElementById('mute-btn'); const volumeSlider = document.getElementById('volume-slider'); const pipBtn = document.getElementById('pip-btn'); const airplayBtn = document.getElementById('airplay-btn'); const castBtn = document.getElementById('cast-btn'); const fullscreenBtn = document.getElementById('fullscreen-btn'); const layoutBtn = document.getElementById('layout-btn'); const qualityList = document.getElementById('quality-list'); const topFullscreenBtn = document.getElementById('top-fullscreen-btn'); const topStopBtn = document.getElementById('top-stop-btn');
 
-        const playIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
-        const pauseIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
-        const volHighIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
-        const volMuteIcon = `<svg class="size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
+        const playIcon = `<svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+        const pauseIcon = `<svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+        const volHighIcon = `<svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+        const volMuteIcon = `<svg class="size-4 sm:size-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
 
         window.getActiveVideo = function() { return document.getElementById('player-' + activeSlot); }
 
@@ -1179,7 +1140,6 @@ new class extends Component {
         fullscreenBtn.addEventListener('click', toggleFs); topFullscreenBtn.addEventListener('click', toggleFs);
         airplayBtn.addEventListener('click', () => { const v = getActiveVideo(); if(v.webkitShowPlaybackTargetPicker) v.webkitShowPlaybackTargetPicker(); });
 
-        // CHROMECAST CLICK HANDLER
         if(castBtn) {
             castBtn.addEventListener('click', () => {
                 const context = cast.framework.CastContext.getInstance();
@@ -1260,7 +1220,6 @@ new class extends Component {
         }
 
         window.loadStream = async function(url, name = 'Live stream', targetSlot = activeSlot) {
-            // Update tracking for Chromecast
             window.currentStreamUrls[targetSlot] = url;
             window.currentStreamNames[targetSlot] = name;
 
@@ -1313,7 +1272,6 @@ new class extends Component {
             updateStatus(slotId, `Loading ${name}...`); spinner.style.opacity = '1'; await shakaP.load(url); updateStatus(slotId, `Playing: ${name}`); await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
         }
 
-        // Livewire init hook
         window.addEventListener('load', () => {
             loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
         });
