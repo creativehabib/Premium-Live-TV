@@ -10,7 +10,7 @@ new class extends Component {
 
     public string $search = '';
 
-    public string $activeGroupKey = 'techeasylife';
+    public string $activeGroupKey = 'sports';
 
     public int $selectedChannelId = 1;
 
@@ -20,8 +20,8 @@ new class extends Component {
      * @var list<array{key:string,name:string,badge:string,url:string}>
      */
     public array $groups = [
-        ['key' => 'techeasylife', 'name' => 'TechEasyLife 👑', 'badge' => 'BD', 'url' => 'https://raw.githubusercontent.com/Monjil404/livetv/refs/heads/main/pro'],
         ['key' => 'sports', 'name' => 'Sports ⚽', 'badge' => 'SPORTS', 'url' => 'https://raw.githubusercontent.com/Monjil404/TVspo/refs/heads/main/tvs'],
+        ['key' => 'techeasylife', 'name' => 'TechEasyLife 👑', 'badge' => 'BD', 'url' => 'https://raw.githubusercontent.com/Monjil404/livetv/refs/heads/main/pro'],
         ['key' => 'mrgify-bdix', 'name' => 'Mrgify BDIX ⭐', 'badge' => 'BDIX', 'url' => 'https://raw.githubusercontent.com/abusaeeidx/Mrgify-BDIX-IPTV/main/playlist.m3u'],
         ['key' => 'mrgify-clean', 'name' => 'Mrgify Clean', 'badge' => 'BDIX', 'url' => 'https://raw.githubusercontent.com/ashik4u/mrgify-clean/main/playlist.m3u'],
         ['key' => 'imshakil', 'name' => 'imShakil', 'badge' => 'BD+INDIA', 'url' => 'https://raw.githubusercontent.com/imShakil/tvlink/refs/heads/main/iptv.m3u8'],
@@ -256,7 +256,7 @@ new class extends Component {
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* CUSTOM SCROLLBAR (Premium Glass Look) */
+        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
@@ -325,7 +325,7 @@ new class extends Component {
         }
         .slot-active {
             z-index: 10;
-            box-shadow: inset 0 0 0 2px #6366f1; /* Indigo 500 ring */
+            box-shadow: inset 0 0 0 2px #6366f1;
             opacity: 1 !important;
         }
         .slot-inactive {
@@ -348,6 +348,63 @@ new class extends Component {
             transform-origin: top left;
             transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
         }
+
+        /* --- FULLSCREEN HOVER SIDEBAR (LEFT SIDE) --- */
+        .fs-sidebar-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100%;
+            z-index: 99999;
+            pointer-events: none;
+            display: none; /* ডিফল্ট হাইড */
+        }
+
+        /* JS দিয়ে এই ক্লাস অ্যাড হলে সাইডবার শো করবে */
+        .video-is-fullscreen .fs-sidebar-wrapper {
+            display: block;
+        }
+
+        .fs-sidebar-trigger {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40px; /* হোভার ট্রিগার করার জায়গা */
+            height: 100%;
+            pointer-events: auto; /* মাউস ধরতে পারবে */
+            z-index: 100000;
+        }
+
+        .fs-sidebar-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.75); /* ট্রান্সপারেন্ট গ্লাস */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%); /* স্ক্রিনের বাইরে থাকবে */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            z-index: 100001;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 20px 0 40px rgba(0,0,0,0.5);
+        }
+
+        /* হোভার করলে বেরিয়ে আসবে */
+        .fs-sidebar-trigger:hover + .fs-sidebar-panel,
+        .fs-sidebar-panel:hover {
+            transform: translateX(0);
+        }
+
+        /* সাইডবার স্ক্রলবার */
+        .fs-sidebar-panel::-webkit-scrollbar { width: 5px; }
+        .fs-sidebar-panel::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.6); border-radius: 10px; }
+        .fs-sidebar-panel::-webkit-scrollbar-track { background: transparent; }
     </style>
 
     <div id="shortcuts-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity opacity-0">
@@ -487,7 +544,6 @@ new class extends Component {
                 </div>
 
                 <div id="video-grid" class="absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300">
-
                     <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)">
                         <video id="player-1" autoplay muted playsinline x-webkit-airplay="allow"></video>
                         <div id="spinner-1" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
@@ -523,7 +579,6 @@ new class extends Component {
                         <div id="status-4" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/70 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur tracking-wide z-20 opacity-0 transition-opacity duration-300">Ready</div>
                         <div class="absolute top-2 left-2 bg-black/60 px-2 py-1 text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 4</div>
                     </div>
-
                 </div>
 
                 <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-100 transition-opacity duration-500 z-30">
@@ -544,7 +599,6 @@ new class extends Component {
                     </div>
 
                     <div class="flex items-center gap-3 relative">
-
                         <div class="relative group/settings">
                             <button class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90" title="Settings">
                                 <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -587,7 +641,6 @@ new class extends Component {
         </section>
 
         <section class="dim-in-theater rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 transition-shadow hover:shadow-indigo-200">
-
             <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50">
                     <button class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 cursor-pointer text-xs font-bold text-indigo-700 shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-indigo-300 dark:ring-slate-600 transition-all duration-200 active:scale-95 hover:shadow-md hover:-translate-y-0.5 tracking-wide">
@@ -679,7 +732,6 @@ new class extends Component {
                     @endphp
 
                     <div wire:key="channel-{{ $channel['id'] }}" class="flex items-center gap-3 rounded-xl border p-3 group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md {{ $containerClass }}">
-
                         <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
 
                         <div class="grid size-12 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm overflow-hidden dark:border-slate-700 dark:bg-slate-800 transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
@@ -769,11 +821,66 @@ new class extends Component {
                 <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">
             </a>
         </footer>
+
+        <div x-data>
+            <template x-teleport="#video-container">
+                <div class="fs-sidebar-wrapper">
+                    <div class="fs-sidebar-trigger" title="Show Channels"></div>
+
+                    <div class="fs-sidebar-panel">
+
+                        <div class="px-5 py-4 border-b border-white/10 bg-slate-900/40 flex items-center justify-between">
+                            <div class="text-[13px] font-extrabold text-white tracking-widest flex items-center gap-2">
+                                <svg class="size-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                                CHANNELS
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                                {{ count($this->filteredChannels()) }}
+                            </span>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                            @foreach ($this->filteredChannels() as $channel)
+                                <button wire:click="playChannel({{ $channel['id'] }})" class="w-full text-left flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 transition-all duration-200 group/fsbtn active:scale-95">
+                                    <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/5 border border-white/10 overflow-hidden shadow-sm group-hover/fsbtn:border-indigo-500/50 transition-colors">
+                                        @if(str_starts_with($channel['logo'], 'http'))
+                                            <img src="{{ $channel['logo'] }}" class="size-full object-contain p-0.5" loading="lazy" alt="Logo">
+                                        @else
+                                            <span class="text-[10px] font-black text-indigo-300">{{ $channel['logo'] }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="truncate text-[13px] font-bold text-slate-200 group-hover/fsbtn:text-white transition-colors">{{ $channel['name'] }}</div>
+                                        <div class="text-[10px] font-medium text-slate-400 mt-0.5">{{ $channel['category'] }}</div>
+                                    </div>
+                                    @if($channel['status'] === 'LIVE')
+                                        <div class="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981] opacity-0 group-hover/fsbtn:opacity-100 transition-opacity"></div>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+
+                    </div>
+                </div>
+            </template>
+        </div>
+
     </div>
 
     <div id="toast-container" class="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 flex-col gap-2 pointer-events-none"></div>
 
     <script>
+        // JS দিয়ে Fullscreen ক্লাস অ্যাড/রিমুভ করার জন্য
+        const fsEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
+        fsEvents.forEach(evt => document.addEventListener(evt, () => {
+            const vc = document.getElementById('video-container');
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                vc.classList.add('video-is-fullscreen');
+            } else {
+                vc.classList.remove('video-is-fullscreen');
+            }
+        }));
+
         window.showToast = function(message, type = 'success') {
             const toastContainer = document.getElementById('toast-container');
             if(!toastContainer) return;
