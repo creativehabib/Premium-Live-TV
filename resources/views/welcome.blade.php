@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>LiveTVPro - {{ config('app.name', 'Creativehabib') }}</title>
+        <title>Live TV Pro - {{ config('app.name', 'Creativehabib') }}</title>
 
         <link rel="icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgPKsKTDHK8XChTjvQ68VIMFGTn_CtyGoroGeYWy8syHT22cMCtG6FckHtpsnjNlDU-e6p_KVM6ZjCRMXHjbQNh5hynFJfc5RPi5E63pvVuSFboVLBg1p2BNR6d1csVTMqyHgxA9balq6AM/s60/creativehabib_logo_2.png" sizes="any">
         <link rel="icon" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgPKsKTDHK8XChTjvQ68VIMFGTn_CtyGoroGeYWy8syHT22cMCtG6FckHtpsnjNlDU-e6p_KVM6ZjCRMXHjbQNh5hynFJfc5RPi5E63pvVuSFboVLBg1p2BNR6d1csVTMqyHgxA9balq6AM/s60/creativehabib_logo_2.png" type="image/svg+xml">

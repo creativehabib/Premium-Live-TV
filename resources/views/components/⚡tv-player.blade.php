@@ -69,17 +69,47 @@ new class extends Component {
         $this->search = '';
         $this->loadMessage = 'Loading '.$group['name'].' channels...';
 
-        $response = Http::timeout(12)->get($group['url']);
+        // Cache System: ডাটা ২ ঘণ্টার জন্য সেভ থাকবে
+        $cacheKey = 'iptv_group_data_' . $groupKey;
+        $playlistCacheKey = 'iptv_playlist_raw_' . $groupKey;
 
-        if (! $response->successful()) {
-            $this->channels = [];
+        $this->channels = cache()->remember($cacheKey, now()->addHours(2), function () use ($group, $playlistCacheKey) {
+            try {
+                $response = Http::timeout(20)->get($group['url']);
+                if ($response->successful()) {
+                    $body = $response->body();
+
+                    // ==========================================
+                    // FIX: Malformed UTF-8 Characters Error
+                    // ==========================================
+                    // ১. ফাইলের অরিজিনাল এনকোডিং ডিটেক্ট করে UTF-8 এ কনভার্ট করা
+                    $encoding = mb_detect_encoding($body, 'UTF-8, ISO-8859-1, WINDOWS-1252', true) ?: 'UTF-8';
+                    $body = mb_convert_encoding($body, 'UTF-8', $encoding);
+
+                    // ২. অতিরিক্ত ইনভ্যালিড ক্যারেক্টার ইগনোর করে ফিল্টার করা
+                    $body = iconv('UTF-8', 'UTF-8//IGNORE', $body) ?: $body;
+
+                    // ৩. প্লেলিস্ট বক্সে দেখানোর জন্য ডাটা ক্যাশ করে রাখা
+                    cache()->put($playlistCacheKey, $body, now()->addHours(2));
+
+                    return $this->parsePlaylist($body, $group['name']);
+                }
+            } catch (\Exception $e) {
+                return [];
+            }
+            return [];
+        });
+
+        // প্লেলিস্ট বক্সে ডাটা শো করানো
+        $this->playlist = cache()->get($playlistCacheKey, '');
+
+        if (empty($this->channels)) {
             $this->loadMessage = 'Unable to load channels from '.$group['name'].'.';
-
+            cache()->forget($cacheKey);
+            cache()->forget($playlistCacheKey);
             return;
         }
 
-        $this->playlist = $response->body();
-        $this->channels = $this->parsePlaylist($this->playlist, $group['name']);
         $this->loadMessage = count($this->channels).' channels loaded from '.$group['name'].'.';
 
         if ($this->channels !== []) {
@@ -284,12 +314,20 @@ new class extends Component {
         input[type=range].custom-vol::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ffffff; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.1s; }
         input[type=range].custom-vol::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-        /* Micro-interaction: Staggered Fade In Up */
+        /* Micro-interaction: Staggered Fade In Up & Progress Bar */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .stagger-fade-in > div { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; }
         .stagger-fade-in > div:nth-child(1) { animation-delay: 0.05s; } .stagger-fade-in > div:nth-child(2) { animation-delay: 0.1s; }
         .stagger-fade-in > div:nth-child(3) { animation-delay: 0.15s; } .stagger-fade-in > div:nth-child(4) { animation-delay: 0.2s; }
         .stagger-fade-in > div:nth-child(n+5) { animation-delay: 0.25s; }
+
+        @keyframes simulated-progress {
+            0% { width: 0%; }
+            15% { width: 25%; }
+            45% { width: 60%; }
+            75% { width: 85%; }
+            100% { width: 95%; }
+        }
 
         /* THEATER MODE STYLES */
         body.theater-mode-active #app-wrapper { background: #020617 !important; }
@@ -404,10 +442,30 @@ new class extends Component {
                     </button>
                 @endforeach
             </div>
+
+            <!-- ANIMATED PROGRESS BAR -->
+            <div wire:loading wire:target="loadGroup" class="w-full mt-5 px-3">
+                <div class="h-1 w-full bg-slate-200 dark:bg-slate-700 overflow-hidden rounded-full relative">
+                    <div class="absolute top-0 left-0 h-full bg-violet-600 rounded-full" style="animation: simulated-progress 5s ease-out forwards;"></div>
+                </div>
+                <div class="mt-3 flex items-center justify-center gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="size-3.5 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        চেক করা হচ্ছে...
+                    </span>
+                    <button type="button" onclick="window.stop(); window.location.reload();" class="flex items-center gap-1 px-2 py-0.5 rounded border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors dark:border-rose-900/50 dark:bg-rose-900/20">
+                        <span class="size-1.5 bg-current rounded-sm"></span> থামান
+                    </button>
+                </div>
+            </div>
+
             @if ($loadMessage)
-                <p class="mt-3 text-xs font-semibold text-slate-500 animate-pulse tracking-wide">⚠️ {{ $loadMessage }}</p>
+                <p wire:loading.remove wire:target="loadGroup" class="mt-3 text-xs font-semibold text-slate-500 animate-pulse tracking-wide">⚠️ {{ $loadMessage }}</p>
             @endif
-            <p class="mt-3 text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
+            <p wire:loading.remove wire:target="loadGroup" class="mt-3 text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
         </section>
 
         <section class="player-section-wrapper overflow-hidden rounded-2xl bg-white shadow-xl shadow-violet-200/50 ring-1 ring-white/80 dark:bg-slate-900 dark:ring-slate-700 transition-all duration-500 hover:shadow-violet-200/60">
@@ -449,16 +507,18 @@ new class extends Component {
                 </div>
             </div>
 
+            <!-- WRAPPER FOR FLOATING PLAYER TO PREVENT LAYOUT JUMP -->
             <div id="video-placeholder" class="w-full aspect-video relative bg-black/5 dark:bg-black/20 rounded-b-2xl sm:rounded-none">
                 <div wire:ignore id="video-container" class="relative w-full h-full bg-black overflow-hidden transition-all group z-40">
 
+                    <!-- Close button for floating player -->
                     <button onclick="document.getElementById('video-container').classList.remove('floating-player'); window.scrollTo({top: document.getElementById('video-placeholder').offsetTop - 100, behavior: 'smooth'})" class="close-floating absolute top-2 right-2 size-8 bg-rose-600 text-white rounded-full items-center justify-center shadow-lg z-[10000] hover:bg-rose-700 transition-transform hover:scale-110 active:scale-95">
                         <svg class="size-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
 
                     <div id="custom-context-menu" class="absolute hidden glass-menu rounded-xl py-2 w-48 z-[100] text-sm text-slate-200">
                         <button onclick="copyToClipboard('{{ $this->selectedChannel()['url'] }}'); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
+                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
                         </button>
                         <button onclick="toggleLoop(); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
                             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop Video <span id="loop-status" class="ml-auto text-xs text-slate-400">Off</span>
@@ -524,6 +584,7 @@ new class extends Component {
                         </div>
                     </div>
 
+                    <!-- Custom Controls -->
                     <div id="custom-controls" class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 px-5 opacity-100 transition-opacity duration-500 z-30">
                         <div class="flex items-center gap-4">
                             <button id="play-pause-btn" class="grid size-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition hover:bg-white/40 hover:scale-110 active:scale-90">
@@ -590,6 +651,7 @@ new class extends Component {
             </div>
         </section>
 
+        <!-- Other UI Sections -->
         <section class="dim-in-theater rounded-2xl bg-white shadow-xl shadow-indigo-200/50 ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800 transition-shadow hover:shadow-indigo-200">
             <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-1 bg-slate-50 p-1.5 rounded-xl dark:bg-slate-800/50">
@@ -638,7 +700,7 @@ new class extends Component {
             <div class="px-4 py-3">
                 <div class="relative group">
                     <svg class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input wire:model.live="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-10 text-sm font-medium text-slate-700 outline-none transition-all duration-300 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-md focus:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900 dark:focus:ring-indigo-900/50" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
+                    <input wire:model.live.debounce.300ms="search" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-10 text-sm font-medium text-slate-700 outline-none transition-all duration-300 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-md focus:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-indigo-500 dark:focus:bg-slate-900 dark:focus:ring-indigo-900/50" placeholder="নাম, group বা URL দিয়ে সার্চ করুন...">
                     @if($search !== '')
                         <button wire:click="$set('search', '')" class="absolute right-3 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full bg-slate-200 text-slate-500 hover:bg-rose-500 hover:text-white transition-all active:scale-90 dark:bg-slate-700 dark:text-slate-400">
                             <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -658,29 +720,7 @@ new class extends Component {
                 </span>
             </div>
 
-            <div wire:loading wire:target="loadGroup" class="flex w-full flex-col gap-2 p-3">
-                @for ($i = 0; $i < 5; $i++)
-                    <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 animate-pulse dark:border-slate-800 dark:bg-slate-800/50">
-                        <div class="size-4 rounded bg-slate-200 dark:bg-slate-700 shrink-0"></div>
-                        <div class="size-12 rounded-lg bg-slate-200 dark:bg-slate-700 shrink-0"></div>
-                        <div class="min-w-0 flex-1 space-y-2">
-                            <div class="flex items-center gap-2">
-                                <div class="h-4 w-32 rounded bg-slate-200 dark:bg-slate-700"></div>
-                                <div class="h-3 w-12 rounded bg-slate-200 dark:bg-slate-700"></div>
-                            </div>
-                            <div class="h-3 w-48 rounded bg-slate-200 dark:bg-slate-700"></div>
-                            <div class="h-2 w-16 rounded bg-slate-200 dark:bg-slate-700"></div>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <div class="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                            <div class="h-8 w-20 rounded-lg bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
-                            <div class="h-8 w-20 rounded-lg bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
-                            <div class="size-[30px] rounded-lg bg-slate-200 dark:bg-slate-700"></div>
-                        </div>
-                    </div>
-                @endfor
-            </div>
-
+            <!-- MAIN CHANNEL LIST WITH LAZY LOAD & DRAG & DROP -->
             <div wire:loading.remove wire:target="loadGroup"
                  x-data="{ limit: 30 }"
                  @scroll="if($el.scrollTop + $el.clientHeight >= $el.scrollHeight - 200) limit += 30"
@@ -703,6 +743,7 @@ new class extends Component {
 
                         <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
 
+                        <!-- Drag Handle Icon -->
                         <div class="text-slate-300 hover:text-slate-500 dark:text-slate-600 transition-colors hidden sm:block">
                             <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
                         </div>
@@ -734,6 +775,7 @@ new class extends Component {
 
                         <div class="flex items-center gap-2 shrink-0">
 
+                            <!-- FAVORITE BUTTON -->
                             <button @click.stop="toggleFav('{{ $channel['url'] }}')"
                                     class="grid size-[30px] place-items-center cursor-pointer rounded-lg border transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm"
                                     :class="isFav('{{ $channel['url'] }}') ? 'bg-rose-50 border-rose-200 text-rose-500 dark:bg-rose-900/30 dark:border-rose-900/50 dark:text-rose-400' : 'bg-white border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700'">
