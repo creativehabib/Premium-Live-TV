@@ -288,9 +288,10 @@ new class extends Component {
         /* IMPORT PREMIUM FONTS */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 
+        /* TYPOGRAPHY REFINEMENT */
         #app-wrapper { font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-        /* SCROLLBAR */
+        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 10px; }
@@ -299,12 +300,12 @@ new class extends Component {
         .dark ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.8); }
         * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.4) transparent; }
 
-        /* VOL SLIDER */
+        /* Custom Volume Slider CSS */
         input[type=range].custom-vol { -webkit-appearance: none; background: rgba(255, 255, 255, 0.4); height: 4px; border-radius: 2px; outline: none; }
         input[type=range].custom-vol::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #ffffff; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.1s; }
         input[type=range].custom-vol::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
-        /* ANIMATIONS */
+        /* Micro-interaction: Staggered Fade In Up & Progress Bar */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .stagger-fade-in > div { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; }
         .stagger-fade-in > div:nth-child(1) { animation-delay: 0.05s; } .stagger-fade-in > div:nth-child(2) { animation-delay: 0.1s; }
@@ -315,7 +316,7 @@ new class extends Component {
             0% { width: 0%; } 15% { width: 25%; } 45% { width: 60%; } 75% { width: 85%; } 100% { width: 95%; }
         }
 
-        /* THEATER MODE */
+        /* THEATER MODE STYLES */
         body.theater-mode-active #app-wrapper { background: #020617 !important; }
         body.theater-mode-active #content-container { max-width: 1500px !important; }
         body.theater-mode-active .dim-in-theater { opacity: 0.15; transition: opacity 0.4s ease-in-out; filter: grayscale(0.5); }
@@ -323,38 +324,50 @@ new class extends Component {
         body.theater-mode-active .player-section-wrapper { box-shadow: 0 0 50px rgba(0,0,0,0.5); border-color: #1e293b; }
         #content-container { transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* MULTI-VIEW */
+        /* MULTI-VIEW / VIDEO GRID STYLES */
         .video-slot { position: relative; width: 100%; height: 100%; background: #000; transition: all 0.3s ease; cursor: pointer; }
         .video-slot video { width: 100%; height: 100%; object-fit: contain; }
         .slot-active { z-index: 10; box-shadow: inset 0 0 0 2px #6366f1; opacity: 1 !important; }
         .slot-inactive { z-index: 0; opacity: 0.6; }
         .slot-inactive:hover { opacity: 0.9; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3); }
 
-        /* DRAG AND DROP */
+        /* DRAG AND DROP STYLES */
         .drag-over-active { box-shadow: inset 0 0 0 4px #f43f5e !important; filter: brightness(1.2); }
 
-        /* FLOATING MINI-PLAYER */
+        /* FLOATING MINI-PLAYER STYLES - Mobile Optimized */
         .floating-player {
-            position: fixed !important; bottom: 15px; right: 15px; width: 90vw !important; max-width: 380px !important;
-            height: auto !important; aspect-ratio: 16 / 9; z-index: 99999; border-radius: 12px;
+            position: fixed !important;
+            bottom: 15px;
+            right: 15px;
+            width: 90vw !important;
+            max-width: 380px !important;
+            height: auto !important;
+            aspect-ratio: 16 / 9;
+            z-index: 99999;
+            border-radius: 12px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; background: #000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            background: #000;
         }
-        @media (min-width: 640px) { .floating-player { bottom: 25px; right: 25px; width: 380px !important; } }
+        @media (min-width: 640px) {
+            .floating-player { bottom: 25px; right: 25px; width: 380px !important; }
+        }
         .floating-player:hover { transform: scale(1.03) translateY(-5px); box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(99, 102, 241, 0.5); }
         .close-floating { display: none; }
         .floating-player .close-floating { display: flex; }
         .floating-player #custom-controls { padding: 8px !important; }
 
-        /* MENUS */
+        /* CUSTOM CONTEXT MENU & MODALS */
         .glass-menu { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
         #custom-context-menu { transform-origin: top left; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease; }
 
-        /* FULLSCREEN SIDEBAR */
+        /* FULLSCREEN HOVER SIDEBAR (LEFT SIDE) */
         .fs-sidebar-wrapper { position: absolute; top: 0; left: 0; width: 300px; height: 100%; z-index: 99999; pointer-events: none; display: none; }
         @media (min-width: 640px) { .fs-sidebar-wrapper { width: 320px; } }
         .video-is-fullscreen .fs-sidebar-wrapper { display: block; }
         .fs-sidebar-trigger { position: absolute; top: 0; left: 0; width: 40px; height: 100%; pointer-events: auto; z-index: 100000; }
+        /* Touch Indicator for Mobile Sidebar */
         .fs-sidebar-trigger::after { content: ''; position: absolute; top: 50%; left: 6px; width: 4px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 4px; transform: translateY(-50%); transition: background 0.2s; }
         .fs-sidebar-trigger:hover::after { background: rgba(255,255,255,0.6); }
         .fs-sidebar-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid rgba(255, 255, 255, 0.1); transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; z-index: 100001; display: flex; flex-direction: column; box-shadow: 20px 0 40px rgba(0,0,0,0.5); }
@@ -447,7 +460,7 @@ new class extends Component {
             </div>
 
             @if ($loadMessage)
-                <p wire:loading.remove wire:target="loadGroup" class="mt-2 sm:mt-3 text-[11px] sm:text-xs font-semibold text-slate-500 tracking-wide">⚠️ {{ $loadMessage }}</p>
+                <p wire:loading.remove wire:target="loadGroup" class="mt-2 sm:mt-3 text-[11px] sm:text-xs font-semibold text-slate-500 animate-pulse tracking-wide">⚠️ {{ $loadMessage }}</p>
             @endif
             <p wire:loading.remove wire:target="loadGroup" class="mt-2 sm:mt-3 text-[10px] sm:text-[11px] font-medium text-slate-400">কিছু list (time2shine/Bugsfree) থেকে হাজার+ চ্যানেল আসতে পারে। Axsport referer-locked হলে browser-এ ব্লক দেখাবে, VLC-তে চলতে পারে।</p>
         </section>
@@ -525,7 +538,8 @@ new class extends Component {
                     </div>
 
                     <div id="video-grid" class="absolute inset-0 grid grid-cols-1 grid-rows-1 gap-[2px] bg-slate-900 transition-all duration-300">
-                        <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 1)">
+                        <div id="slot-1" class="video-slot slot-active" onclick="setActiveSlot(1)"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 1)">
                             <video id="player-1" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-1" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
                                 <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
@@ -534,7 +548,8 @@ new class extends Component {
                             <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 1</div>
                         </div>
 
-                        <div id="slot-2" class="video-slot slot-inactive hidden" onclick="setActiveSlot(2)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 2)">
+                        <div id="slot-2" class="video-slot slot-inactive hidden" onclick="setActiveSlot(2)"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 2)">
                             <video id="player-2" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-2" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
                                 <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
@@ -543,7 +558,8 @@ new class extends Component {
                             <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 2</div>
                         </div>
 
-                        <div id="slot-3" class="video-slot slot-inactive hidden" onclick="setActiveSlot(3)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 3)">
+                        <div id="slot-3" class="video-slot slot-inactive hidden" onclick="setActiveSlot(3)"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 3)">
                             <video id="player-3" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-3" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
                                 <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
@@ -552,7 +568,8 @@ new class extends Component {
                             <div class="absolute top-1 sm:top-2 left-1 sm:left-2 bg-black/60 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9px] sm:text-[10px] font-bold tracking-wider text-white rounded backdrop-blur">Screen 3</div>
                         </div>
 
-                        <div id="slot-4" class="video-slot slot-inactive hidden" onclick="setActiveSlot(4)" ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 4)">
+                        <div id="slot-4" class="video-slot slot-inactive hidden" onclick="setActiveSlot(4)"
+                             ondragover="event.preventDefault(); this.classList.add('drag-over-active')" ondragleave="this.classList.remove('drag-over-active')" ondrop="event.preventDefault(); this.classList.remove('drag-over-active'); handleDrop(event, 4)">
                             <video id="player-4" autoplay muted playsinline x-webkit-airplay="allow"></video>
                             <div id="spinner-4" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-300 z-10">
                                 <div class="size-8 sm:size-10 rounded-full border-4 border-white/20 border-t-indigo-500 animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
@@ -883,13 +900,29 @@ new class extends Component {
             }
         };
 
+        // JS দিয়ে Fullscreen ক্লাস অ্যাড/রিমুভ এবং Mobile Landscape Auto-Rotate
         const fsEvents = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
-        fsEvents.forEach(evt => document.addEventListener(evt, () => {
+        fsEvents.forEach(evt => document.addEventListener(evt, async () => {
             const vc = document.getElementById('video-container');
             if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
                 vc.classList.add('video-is-fullscreen');
+
+                // Mobile Auto-Rotate to Landscape
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock('landscape');
+                    }
+                } catch (err) { /* Ignore error on non-supported devices */ }
+
             } else {
                 vc.classList.remove('video-is-fullscreen');
+
+                // Restore Orientation on Exit
+                try {
+                    if (screen.orientation && screen.orientation.unlock) {
+                        screen.orientation.unlock();
+                    }
+                } catch (err) { /* Ignore error */ }
             }
         }));
 
