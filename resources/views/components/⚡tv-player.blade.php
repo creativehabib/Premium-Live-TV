@@ -94,7 +94,8 @@ new class extends Component {
             return [];
         });
 
-        $this->playlist = cache()->get($playlistCacheKey, '');
+        // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে M3U/HTML বক্সে অটোমেটিক কোড পেস্ট না হয়
+        // $this->playlist = cache()->get($playlistCacheKey, '');
 
         if (empty($this->channels)) {
             $this->loadMessage = 'Unable to load channels from '.$group['name'].'.';
@@ -107,7 +108,10 @@ new class extends Component {
 
         if ($this->channels !== []) {
             $this->selectedChannelId = $this->channels[0]['id'];
-            $this->singleStreamUrl = $this->channels[0]['url'];
+
+            // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে Single Stream URL বক্সে অটোমেটিক লিংক না যায়
+            // $this->singleStreamUrl = $this->channels[0]['url'];
+
             $this->dispatch('stream-selected', url: $this->channels[0]['url'], name: $this->channels[0]['name']);
         }
     }
