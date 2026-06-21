@@ -429,7 +429,7 @@ new class extends Component {
 
         <section class="dim-in-theater rounded-2xl bg-white/85 p-3 sm:p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
             <div class="mb-2 sm:mb-3 flex items-center justify-between gap-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
-                <span>📡 পাবলিক সোর্স — ক্লিক করে লোড + চেক</span>
+                <span>📡 ক্লিক করে চ্যানেল লোড করু + চেক</span>
                 <span class="rounded-full bg-slate-100 px-2 sm:px-3 py-0.5 sm:py-1 text-slate-500 dark:bg-slate-800 transition hover:bg-slate-200 tracking-wide">{{ count($this->filteredChannels()) }} visible</span>
             </div>
             <div class="flex flex-wrap gap-1.5 sm:gap-2">
@@ -512,9 +512,6 @@ new class extends Component {
                     </button>
 
                     <div id="custom-context-menu" class="absolute hidden glass-menu rounded-xl py-2 w-48 z-[100] text-sm text-slate-200">
-                        <button onclick="copyToClipboard('{{ $this->selectedChannel()['url'] }}'); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
-                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy Video URL
-                        </button>
                         <button onclick="toggleLoop(); hideContextMenu();" class="w-full text-left px-4 py-2 hover:bg-white/10 transition flex items-center gap-2">
                             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop Video <span id="loop-status" class="ml-auto text-xs text-slate-400">Off</span>
                         </button>
@@ -669,25 +666,6 @@ new class extends Component {
                         <span class="size-1.5 sm:size-2 rounded-full bg-rose-500"></span> ডেড <span class="rounded-full bg-slate-200/70 px-1.5 py-0.5 text-[9px] sm:text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300">0</span>
                     </button>
                 </div>
-
-                <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <button class="flex items-center gap-1 sm:gap-1.5 rounded-lg border border-indigo-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
-                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
-                        <span class="hidden sm:inline">চলবে কপি</span>
-                    </button>
-                    <button class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-indigo-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-indigo-50 active:scale-95 hover:-translate-y-0.5 dark:border-indigo-900/50 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-indigo-900/30 tracking-wide">
-                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        .m3u
-                    </button>
-                    <button wire:click="deleteBlockedChannels" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
-                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        <span class="hidden sm:inline">ব্লকড ডিলিট</span>
-                    </button>
-                    <button wire:click="deleteDeadChannels" class="flex items-center gap-1 sm:gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 active:scale-95 hover:-translate-y-0.5 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30 tracking-wide">
-                        <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        <span class="hidden sm:inline">ডেড ডিলিট</span>
-                    </button>
-                </div>
             </div>
 
             <div class="px-3 sm:px-4 py-3">
@@ -700,17 +678,6 @@ new class extends Component {
                         </button>
                     @endif
                 </div>
-            </div>
-
-            <div class="flex items-center justify-between px-3 sm:px-4 pb-2 pt-1 border-b border-slate-50 dark:border-slate-800">
-                <label class="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 transition-colors">
-                    <input type="checkbox" class="size-3.5 sm:size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer transition-transform active:scale-90">
-                    সব নির্বাচন করুন
-                </label>
-                <span class="text-[10px] sm:text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full dark:bg-slate-800">
-                    <span x-show="!showFavoritesOnly">{{ count($this->filteredChannels()) }}টি</span>
-                    <span x-show="showFavoritesOnly" x-text="favorites.length + 'টি'" style="display: none;"></span>
-                </span>
             </div>
 
             <div wire:loading.remove wire:target="loadGroup"
@@ -732,8 +699,6 @@ new class extends Component {
                          data-channel="{{ json_encode(['id' => $channel['id'], 'url' => $channel['url'], 'name' => $channel['name'], 'category' => $channel['category'], 'logo' => $channel['logo']]) }}"
                          ondragstart="event.dataTransfer.setData('application/json', this.dataset.channel); event.dataTransfer.effectAllowed = 'copy';"
                          class="flex items-center gap-2 sm:gap-3 rounded-xl border p-2 sm:p-3 group transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md cursor-grab active:cursor-grabbing {{ $containerClass }}">
-
-                        <input type="checkbox" class="size-3.5 sm:size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:focus:ring-indigo-600 dark:focus:ring-offset-slate-900 cursor-pointer shrink-0 transition-transform active:scale-90">
 
                         <div class="text-slate-300 hover:text-slate-500 dark:text-slate-600 transition-colors hidden sm:block shrink-0">
                             <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
@@ -759,8 +724,6 @@ new class extends Component {
                                     <span class="rounded bg-orange-100 px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-orange-800 border border-orange-200/50 dark:bg-orange-900/50 dark:text-orange-300 dark:border-orange-800/50 shadow-sm hidden sm:inline">proxy লাগবে</span>
                                 @endif
                             </div>
-
-                            <p class="truncate text-[9px] sm:text-[11px] font-medium text-slate-500 mt-0.5 dark:text-slate-400" title="{{ $channel['url'] }}">{{ $channel['url'] }}</p>
                             <p class="text-[8px] sm:text-[10px] font-medium text-slate-400 mt-0.5 dark:text-slate-500">৬:৫৪:২৫ AM</p>
                         </div>
 
@@ -782,10 +745,6 @@ new class extends Component {
                                     <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                     <span class="hidden sm:inline">Retry</span>
                                 </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-rose-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    <span class="hidden sm:inline">ডিলিট</span>
-                                </button>
                             @elseif($isBlocked)
                                 <span class="hidden sm:flex items-center gap-1.5 rounded-full bg-orange-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 border border-orange-200/50 dark:border-orange-800/50 shadow-sm">
                                     <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -794,24 +753,12 @@ new class extends Component {
                                 <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
                                     <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span class="hidden sm:inline">Play</span>
                                 </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> <span class="hidden sm:inline">Copy</span>
-                                </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[26px] sm:size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
                             @else
                                 <span class="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 cursor-default text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 shadow-sm">
                                     <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span> চলবে
                                 </span>
                                 <button wire:click="playChannel({{ $channel['id'] }})" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-200/40 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-indigo-400">
                                     <svg class="size-3 sm:size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> <span class="hidden sm:inline">Play</span>
-                                </button>
-                                <button onclick="copyToClipboard('{{ $channel['url'] }}')" class="flex items-center gap-1.5 cursor-pointer rounded-lg border border-slate-200 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:-translate-y-0.5 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> <span class="hidden sm:inline">Copy</span>
-                                </button>
-                                <button wire:click="deleteChannel({{ $channel['id'] }})" class="grid size-[26px] sm:size-[30px] place-items-center cursor-pointer rounded-lg border border-rose-200 bg-white text-rose-500 shadow-sm transition-all duration-200 hover:bg-rose-50 hover:text-rose-600 hover:-translate-y-0.5 active:scale-95 dark:border-rose-900/50 dark:bg-slate-800 dark:hover:bg-rose-900/30">
-                                    <svg class="size-3 sm:size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             @endif
                         </div>
@@ -846,7 +793,6 @@ new class extends Component {
                             </button>
                         </div>
                     </div>
-
                     <div x-data="{ fsLimit: 30 }"
                          @scroll="if($el.scrollTop + $el.clientHeight >= $el.scrollHeight - 100) fsLimit += 30"
                          class="flex-1 overflow-y-auto p-1.5 sm:p-2 space-y-1">
@@ -1305,10 +1251,20 @@ new class extends Component {
             updateStatus(slotId, `Loading ${name}...`); spinner.style.opacity = '1'; await shakaP.load(url); updateStatus(slotId, `Playing: ${name}`); await v.play().catch(() => updateStatus(slotId, 'Tap play to start'));
         }
 
-        window.addEventListener('load', () => {
-            loadStream(@js($this->selectedChannel()['url']), @js($this->selectedChannel()['name']));
+        // Livewire / Browser Init Hook (Fixed Auto-play)
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                let initUrl = @js($this->selectedChannel()['url']);
+                let initName = @js($this->selectedChannel()['name']);
+                if (initUrl) {
+                    window.loadStream(initUrl, initName, 1);
+                }
+            }, 500);
         });
-        $wire.on('stream-selected', ({ url, name }) => loadStream(url, name));
+
+        $wire.on('stream-selected', ({ url, name }) => {
+            window.loadStream(url, name);
+        });
     </script>
     @endscript
 </div>
