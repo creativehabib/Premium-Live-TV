@@ -407,24 +407,51 @@ new class extends Component {
             </div>
         </header>
 
-        <section class="dim-in-theater rounded-2xl bg-white/85 p-3 sm:p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
-            <div class="flex items-center justify-between gap-3 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">
-                <span>● Single stream URL</span>
-                <span class="text-slate-400 hidden sm:inline">HLS / DASH / HTML5</span>
-            </div>
-            <div class="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2">
-                <input wire:model="singleStreamUrl" class="min-h-10 sm:min-h-11 flex-1 rounded-xl border border-violet-100 bg-violet-50/40 px-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800" placeholder="https://example.com/stream.m3u8">
-                <div class="flex gap-2">
-                    <button wire:click="playSingleStream" class="flex-1 sm:flex-none rounded-xl bg-violet-600 px-4 sm:px-5 py-2 sm:py-3 cursor-pointer text-xs font-bold text-white shadow-lg shadow-violet-300 transition-all duration-300 hover:bg-violet-700 hover:-translate-y-0.5 active:scale-95 hover:shadow-violet-400/50 flex items-center justify-center gap-1.5"><svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play</button>
-                    <button type="button" class="flex-1 sm:flex-none rounded-xl border border-violet-100 bg-white px-3 sm:px-4 py-2 sm:py-3 cursor-pointer text-xs font-bold text-violet-600 shadow-sm dark:border-slate-700 dark:bg-slate-800 transition-all duration-200 hover:bg-violet-50 active:scale-95 text-center">ⓘ Check</button>
+        <section class="dim-in-theater rounded-2xl bg-white/85 p-4 sm:p-6 shadow-xl shadow-indigo-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-indigo-200">
+
+            <div class="mb-5 sm:mb-6">
+                <label class="text-[11px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    Single Stream URL
+                </label>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input wire:model="singleStreamUrl" class="min-h-11 flex-1 rounded-xl border border-indigo-100 bg-indigo-50/40 px-4 text-xs sm:text-sm outline-none ring-indigo-300 transition-all duration-300 focus:ring-2 focus:border-indigo-400 focus:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-indigo-500/50" placeholder="https://example.com/stream.m3u8">
+                    <div class="flex gap-2">
+                        <button wire:click="playSingleStream" class="flex-1 sm:flex-none rounded-xl bg-indigo-600 px-5 py-2.5 cursor-pointer text-xs sm:text-[13px] font-bold text-white shadow-lg shadow-indigo-300/50 transition-all duration-300 hover:bg-indigo-700 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-1.5 dark:shadow-none">
+                            <svg class="size-3.5 sm:size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play
+                        </button>
+                        <button type="button" class="flex-1 sm:flex-none rounded-xl border border-slate-200 bg-white px-4 py-2.5 cursor-pointer text-xs sm:text-[13px] font-bold text-indigo-600 shadow-sm transition-all duration-200 hover:bg-slate-50 active:scale-95 text-center flex items-center justify-center gap-1.5 dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-slate-700">
+                            <svg class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg> Check
+                        </button>
+                    </div>
                 </div>
             </div>
-            <label class="mt-3 sm:mt-4 block text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-violet-600">Playlist / M3U / HTML embed</label>
-            <textarea wire:model="playlist" rows="3" class="mt-1.5 sm:mt-2 w-full rounded-xl border border-violet-100 bg-violet-50/40 p-3 text-xs outline-none ring-violet-300 transition-all duration-300 focus:ring-2 focus:-translate-y-0.5 focus:shadow-md dark:border-slate-700 dark:bg-slate-800"></textarea>
-            <div class="mt-2 sm:mt-3 flex gap-2">
-                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="flex-1 sm:flex-none rounded-xl bg-violet-600 px-3 sm:px-4 py-2 cursor-pointer text-xs font-bold text-white transition-all duration-200 hover:bg-violet-700 hover:-translate-y-0.5 hover:shadow-md active:scale-95">Reload Group</button>
-                <button wire:click="clearInputs" class="flex-1 sm:flex-none rounded-xl bg-slate-100 px-3 sm:px-4 py-2 cursor-pointer text-xs font-bold text-slate-500 dark:bg-slate-800 transition-all duration-200 hover:bg-slate-200 active:scale-95">Clear</button>
+
+            <div class="flex items-center gap-3 mb-5 sm:mb-6">
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent dark:via-slate-600"></div>
+                <span class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-widest whitespace-nowrap">বাল্ক / M3U / HTML পেস্ট করুন</span>
+                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent dark:via-slate-600"></div>
             </div>
+
+            <div class="mb-4">
+                <label class="text-[11px] sm:text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 9h6M9 12h6M9 15h4"></path></svg>
+                    M3U LIST / URL / HTML কোড পেস্ট করুন
+                </label>
+                <textarea wire:model="playlist" rows="4" class="w-full rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 text-xs sm:text-sm outline-none ring-indigo-300 transition-all duration-300 focus:ring-2 focus:border-indigo-400 focus:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-indigo-500/50 leading-relaxed" placeholder="#EXTINF:-1 tvg-name=&quot;Channel Name&quot; tvg-logo=&quot;https://...logo.png&quot; group-title=&quot;News&quot;,Channel Name&#10;https://example.com/stream/index.m3u8&#10;&#10;অথবা শুধু URL সমূহ:&#10;https://stream1.example.com/index.m3u8&#10;https://stream2.example.com/index.m3u8"></textarea>
+            </div>
+
+            <div class="flex gap-2 flex-wrap items-center">
+                <button wire:click="loadGroup('{{ $activeGroupKey }}')" class="rounded-xl bg-indigo-600 px-5 py-2.5 cursor-pointer text-xs sm:text-[13px] font-bold text-white shadow-lg shadow-indigo-300/50 transition-all duration-300 hover:bg-indigo-700 hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5 dark:shadow-none">
+                    <svg width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg>
+                    সব চেক করুন
+                </button>
+                <button wire:click="clearInputs" class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 cursor-pointer text-xs sm:text-[13px] font-bold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 active:scale-95 flex items-center gap-1.5 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2"></path></svg>
+                    Clear
+                </button>
+            </div>
+
         </section>
 
         <section class="dim-in-theater rounded-2xl bg-white/85 p-3 sm:p-4 shadow-xl shadow-violet-200/50 ring-1 ring-white/80 backdrop-blur dark:bg-slate-900/80 dark:ring-slate-700 transition-all duration-300 hover:shadow-violet-200">
