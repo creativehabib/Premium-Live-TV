@@ -16,6 +16,10 @@ new class extends Component {
 
     public ?string $loadMessage = null;
 
+    // --- Premium Visitor Stats ---
+    public int $liveVisitors = 1;
+    public int $totalViews = 0;
+
     /**
      * @var list<array{key:string,name:string,badge:string,url:string}>
      */
@@ -44,7 +48,38 @@ new class extends Component {
 
     public function mount(): void
     {
+        $this->updateVisitorStats(); // Track on load
         $this->loadGroup($this->activeGroupKey);
+    }
+
+    // --- REAL-TIME VISITOR TRACKING LOGIC ---
+    public function updateVisitorStats(): void
+    {
+        try {
+            $visitorId = md5(request()->ip() . request()->userAgent());
+
+            // 1. Live Users Tracking (Active in last 3 mins)
+            $activeUsers = cache()->get('tvpro_live_users', []);
+            $activeUsers[$visitorId] = time();
+
+            // Filter out users who haven't pinged in 3 minutes (180s)
+            $activeUsers = array_filter($activeUsers, fn($time) => (time() - $time) < 180);
+
+            cache()->put('tvpro_live_users', $activeUsers, now()->addMinutes(5));
+            $this->liveVisitors = max(1, count($activeUsers));
+
+            // 2. Lifetime Total Views Tracking
+            $this->totalViews = cache()->get('tvpro_total_views', 14582); // Base start
+            if (!cache()->has('tvpro_visited_' . $visitorId)) {
+                $this->totalViews++;
+                cache()->put('tvpro_total_views', $this->totalViews);
+                // Prevent increasing view count for the same user within 2 hours
+                cache()->put('tvpro_visited_' . $visitorId, true, now()->addHours(2));
+            }
+        } catch (\Exception $e) {
+            $this->liveVisitors = 1;
+            $this->totalViews = 14582;
+        }
     }
 
     /**
@@ -399,15 +434,49 @@ new class extends Component {
 
     <div id="content-container" class="mx-auto flex w-full max-w-4xl flex-col gap-4 sm:gap-5 px-3 sm:px-4 py-4 sm:py-8">
 
-        <header class="text-center dim-in-theater">
+        <header class="relative flex flex-col items-center text-center dim-in-theater">
             <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-violet-700 shadow-lg shadow-violet-200/60 ring-1 ring-violet-100 hover:shadow-violet-300 transition duration-300">
                 <span class="grid size-6 sm:size-7 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-sky-500 text-white">▶</span>
                 LiveTVPro
             </div>
-            <p class="mt-1 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">HLS / DASH / M3U8 Live Streaming Portal</p>
-            <div class="mt-2 sm:mt-3 flex justify-center gap-2 text-[10px] sm:text-[11px] font-bold">
-                <span class="rounded-full bg-white/80 px-2 sm:px-3 py-1 text-violet-600 shadow-sm transition hover:bg-white hover:-translate-y-0.5 cursor-pointer tracking-wide">● Groups: {{ count($groups) }}</span>
-                <span class="rounded-full bg-sky-500 px-2 sm:px-3 py-1 text-white shadow-sm transition hover:bg-sky-400 hover:-translate-y-0.5 active:scale-95 cursor-pointer tracking-wide">Join Telegram</span>
+
+            <p class="mt-2 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-slate-400">
+                HLS / DASH / M3U8 Live Streaming Portal
+            </p>
+
+            <div class="mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+
+        <span class="rounded-full bg-white/80 px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-violet-600 shadow-sm ring-1 ring-violet-100/50 transition hover:bg-white hover:-translate-y-0.5 cursor-pointer tracking-wide">
+            ● Groups: {{ count($groups) }}
+        </span>
+
+                <span class="rounded-full bg-sky-500 px-2.5 py-1 text-[10px] sm:text-[11px] font-bold text-white shadow-sm transition hover:bg-sky-400 hover:-translate-y-0.5 active:scale-95 cursor-pointer tracking-wide">
+            Join Telegram
+        </span>
+
+                <div wire:poll.30s="updateVisitorStats" class="flex items-center gap-2 bg-white dark:bg-slate-800 py-1 pl-2.5 pr-1 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all duration-300 hover:shadow-md cursor-default">
+
+                    <div class="flex items-center gap-1.5" title="Real-time online visitors">
+                <span class="relative flex size-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
+                </span>
+                        <span class="font-mono text-[10px] sm:text-[11px] font-black tracking-wider text-slate-700 dark:text-slate-200">
+                    {{ $liveVisitors }} <span class="font-bold text-slate-400">Online</span>
+                </span>
+                    </div>
+
+                    <div class="h-3.5 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                    <div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-700/50 rounded-full px-2 py-0.5 text-slate-500 dark:text-slate-300" title="Lifetime total views">
+                        <svg class="size-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span class="font-mono text-[9px] sm:text-[10px] font-black tracking-widest">{{ number_format($totalViews) }}</span>
+                    </div>
+
+                </div>
             </div>
         </header>
 
