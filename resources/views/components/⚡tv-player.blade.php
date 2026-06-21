@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 new class extends Component {
-    public string $singleStreamUrl = 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8';
+    public string $singleStreamUrl = 'https://live.thebosstv.com:30443/dwlive/Somoy-TV/chunks.m3u8';
 
     public string $playlist = '';
 
