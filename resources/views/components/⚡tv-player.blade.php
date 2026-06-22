@@ -870,9 +870,9 @@ new class extends Component {
         <footer class="dim-in-theater pb-8 flex flex-col items-center justify-center text-center text-xs font-bold text-slate-500 mt-6">
             <p class="uppercase tracking-[0.3em] text-slate-400">Developed by</p>
             <h3 class="mt-1 text-slate-700 dark:text-slate-200 transition-colors hover:text-indigo-600 cursor-pointer tracking-wide">Habibur Rahaman</h3>
-            <a class="mt-3 block transition-transform duration-300 hover:scale-110" href="https://www.facebook.com/creativehabib" target="_blank" rel="noopener noreferrer" aria-label="Habibur Rahaman — Facebook">
-                <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">
-            </a>
+{{--            <a class="mt-3 block transition-transform duration-300 hover:scale-110" href="https://www.facebook.com/creativehabib" target="_blank" rel="noopener noreferrer" aria-label="Habibur Rahaman — Facebook">--}}
+{{--                <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">--}}
+{{--            </a>--}}
 
             <!-- Privacy & DMCA Links -->
             <div class="mt-5 flex items-center justify-center gap-3 sm:gap-4 text-[10px] sm:text-xs font-semibold text-slate-400">
