@@ -129,7 +129,7 @@ new class extends Component {
             return [];
         });
 
-        // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে M3U/HTML বক্সে অটোমেটিক কোড পেস্ট না হয়
+        // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে M3U/HTML বক্সে অটোমেটিক কোড পেস্ট না হয়
         // $this->playlist = cache()->get($playlistCacheKey, '');
 
         if (empty($this->channels)) {
@@ -144,7 +144,7 @@ new class extends Component {
         if ($this->channels !== []) {
             $this->selectedChannelId = $this->channels[0]['id'];
 
-            // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে Single Stream URL বক্সে অটোমেটিক লিংক না যায়
+            // ❌ নিচের লাইনটি কমেন্ট করা হয়েছে যাতে Single Stream URL বক্সে অটোমেটিক লিংক না যায়
             // $this->singleStreamUrl = $this->channels[0]['url'];
 
             $this->dispatch('stream-selected', url: $this->channels[0]['url'], name: $this->channels[0]['name']);
@@ -870,11 +870,10 @@ new class extends Component {
         <footer class="dim-in-theater pb-8 flex flex-col items-center justify-center text-center text-xs font-bold text-slate-500 mt-6">
             <p class="uppercase tracking-[0.3em] text-slate-400">Developed by</p>
             <h3 class="mt-1 text-slate-700 dark:text-slate-200 transition-colors hover:text-indigo-600 cursor-pointer tracking-wide">Habibur Rahaman</h3>
-{{--            <a class="mt-3 block transition-transform duration-300 hover:scale-110" href="https://www.facebook.com/creativehabib" target="_blank" rel="noopener noreferrer" aria-label="Habibur Rahaman — Facebook">--}}
-{{--                <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">--}}
-{{--            </a>--}}
+            {{--            <a class="mt-3 block transition-transform duration-300 hover:scale-110" href="https://www.facebook.com/creativehabib" target="_blank" rel="noopener noreferrer" aria-label="Habibur Rahaman — Facebook">--}}
+            {{--                <img src="https://i.postimg.cc/pdxGV302/habib-nu-(1).png" alt="Habibur Rahaman" loading="lazy" class="size-16 rounded-full object-cover shadow-lg shadow-violet-300/50 ring-2 ring-violet-100 dark:ring-slate-700">--}}
+            {{--            </a>--}}
 
-            <!-- Privacy & DMCA Links -->
             <div class="mt-5 flex items-center justify-center gap-3 sm:gap-4 text-[10px] sm:text-xs font-semibold text-slate-400">
                 <a href="{{ route('privacy') }}" class="hover:text-indigo-500 transition-colors">Privacy Policy</a>
                 <span>&bull;</span>
@@ -1184,7 +1183,18 @@ new class extends Component {
 
         for (let i = 1; i <= 4; i++) {
             const v = document.getElementById('player-' + i); const spinner = document.getElementById('spinner-' + i);
-            v.addEventListener('waiting', () => { spinner.style.opacity = '1'; }); v.addEventListener('playing', () => { spinner.style.opacity = '0'; }); v.addEventListener('canplay', () => { spinner.style.opacity = '0'; });
+
+            v.addEventListener('waiting', () => { spinner.style.opacity = '1'; });
+            v.addEventListener('playing', () => { spinner.style.opacity = '0'; });
+            v.addEventListener('canplay', () => { spinner.style.opacity = '0'; });
+
+            // 🔥 Added fix for stuck spinner
+            v.addEventListener('timeupdate', () => {
+                if (!v.paused && v.readyState >= 3) {
+                    spinner.style.opacity = '0';
+                }
+            });
+
             v.addEventListener('play', () => { if (activeSlot === i) playPauseBtn.innerHTML = pauseIcon; showControls(); });
             v.addEventListener('pause', () => { if (activeSlot === i) playPauseBtn.innerHTML = playIcon; showControls(); });
             v.addEventListener('volumechange', () => {
@@ -1346,7 +1356,19 @@ new class extends Component {
                 updateStatus(slotId, `Load failed`); hls.destroy(); hlsPlayers[slotId] = null; playNative(url, name, slotId).catch(() => updateStatus(slotId, `Error: ${data.details ?? 'unknown'}`));
             });
             hls.on(Hls.Events.MANIFEST_PARSED, async () => { retryCounts[slotId] = 0; updateStatus(slotId, `Playing: ${name}`); updateQualityMenu(slotId); await v.play().catch(() => updateStatus(slotId, 'Tap play to start')); });
-            hls.on(Hls.Events.FRAG_LOADED, (event, data) => { if(activeSlot === slotId) { const bw = Math.round(data.frag.stats.bwEstimate / 1000); if(bw) document.getElementById('stat-bw').textContent = bw + ' Kbps'; } });
+
+            // 🔥 Added fix for HLS Fragment Loaded to hide stuck spinner
+            hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
+                if(activeSlot === slotId) {
+                    const bw = Math.round(data.frag.stats.bwEstimate / 1000);
+                    if(bw) document.getElementById('stat-bw').textContent = bw + ' Kbps';
+                }
+                const spinnerEl = document.getElementById('spinner-' + slotId);
+                if (spinnerEl) {
+                    spinnerEl.style.opacity = '0';
+                }
+            });
+
             updateStatus(slotId, `Loading ${name}...`); spinner.style.opacity = '1'; hls.loadSource(url); hls.attachMedia(v);
         }
 
